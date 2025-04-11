@@ -1,4 +1,6 @@
-﻿namespace EquipmentRepairLog.Core.Data.StandardModel
+﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+
+namespace EquipmentRepairLog.Core.Data.StandardModel
 {
     public class TypeDocument : Entity
     {
@@ -10,5 +12,7 @@
 
         //Может быть единственным в комплекте или нет
         public bool IsOnlyTypeDocInRepairLog { get; set; }
+
+        public List<Document> Documents { get; set; }
     }
 }

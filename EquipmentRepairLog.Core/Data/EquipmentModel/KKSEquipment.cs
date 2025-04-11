@@ -12,6 +12,6 @@ namespace EquipmentRepairLog.Core.Data.EquipmentModel
 
         public required EquipmentName EquipmentName { get; set; }
 
-        public List<Equipment> Equipments { get; set; }
+        public List<KKSRepairDocument> KKSEquipmentDocuments { get; set; }
     }
 }

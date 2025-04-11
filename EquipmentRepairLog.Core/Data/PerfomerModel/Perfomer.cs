@@ -7,5 +7,7 @@
 
         //Аббревиатура исполнителя работ
         public string Abbreviation { get; set; } = string.Empty;
+
+        public List<PerfomersWork> PerfomersWorks { get; set; }
     }
 }

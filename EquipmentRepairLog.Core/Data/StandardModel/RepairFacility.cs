@@ -1,4 +1,6 @@
-﻿namespace EquipmentRepairLog.Core.Data.StandardModel
+﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+
+namespace EquipmentRepairLog.Core.Data.StandardModel
 {
     public class RepairFacility : Entity
     {
@@ -7,5 +9,7 @@
 
         //Номер объекта
         public int Number { get; set; }
+
+        public List<Document> Documents { get; set; }
     }
 }

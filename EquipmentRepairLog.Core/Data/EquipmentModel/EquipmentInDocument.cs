@@ -8,8 +8,6 @@ namespace EquipmentRepairLog.Core.Data.EquipmentModel
 
         public Document Document { get; set; }
 
-        public Guid EquipmentId { get; set; }
-
-        public Equipment Equipment { get; set; }
+        public List<KKSRepairDocument> KKSEquipment { get; set; }
     }
 }

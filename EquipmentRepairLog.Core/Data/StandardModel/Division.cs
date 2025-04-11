@@ -1,4 +1,6 @@
-﻿namespace EquipmentRepairLog.Core.Data.StandardModel
+﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+
+namespace EquipmentRepairLog.Core.Data.StandardModel
 {
     public class Division : Entity
     {
@@ -10,5 +12,7 @@
 
         //Аббревиатура владельца оборудования
         public string Abbreviation { get; set; } = string.Empty;
+
+        List<Document> Documents { get; set; }
     }
 }

@@ -8,6 +8,6 @@ namespace EquipmentRepairLog.Core.Data.PerfomerModel
 
         public Document Document { get; set; }
 
-        public List<Perfomer> Perfomer { get; set; }
+        public List<PerfomersWork> Perfomers { get; set; }
     }
 }
