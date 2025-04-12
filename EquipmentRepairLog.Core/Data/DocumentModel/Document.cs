@@ -1,60 +1,75 @@
 ﻿using EquipmentRepairLog.Core.Data.EquipmentModel;
-using EquipmentRepairLog.Core.Data.PerfomerModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
 
 namespace EquipmentRepairLog.Core.Data.DocumentModel
 {
     public class Document : Entity
     {
-        //Дата регистрации
+        /// <summary>
+        /// Дата регистрации
+        /// </summary>
         public DateTime RegistrationDate { get; set; } = DateTime.Now;
 
-        //Дата ремонта
+        /// <summary>
+        /// Дата ремонта
+        /// </summary>
         public DateTime RepairDate { get; set; }
 
-        //Дата для изменения
-        //(Для изменения регистрационного номера после прошедшего срока или до него)
+        /// <summary>
+        /// Дата для изменения номера регистрации
+        /// (Для изменения регистрационного номера после прошедшего срока или до него)
+        /// </summary>
         public DateTime? ChangeDateRegistrNumber { get; set; } = null;
 
-        //Порядковый номер документа по типу
-        //(Зависит от года регистрации,
-        //т.е. с каждого года новая нумерация)
+        /// <summary>
+        /// Порядковый номер документа по типу и году регистрации
+        /// </summary>
         public int OrdinalNumber { get; set; }
 
-        //Примечание
+        /// <summary>
+        /// Регистрационный номер документа
+        /// </summary>
+        public string RegistrationNumber { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Примечание
+        /// </summary>
         public string? Note { get; set; } = string.Empty;
 
-        //Регистрационный номер
-        public string RegistrNumber { get; set; } = string.Empty;
+        public Guid DocumentTypeId { get; set; }
 
-        public Guid IdTypeDoc { get; set; }
+        /// <summary>
+        /// Тип документа
+        /// </summary>
+        public DocumentType? DocumentType { get; set; }
 
-        //Тип документа
-        public TypeDocument TypeDocument { get; set; }
+        public Guid DivisionId { get; set; }
 
-        public Guid IdEquipmentInDoc { get; set; }
+        /// <summary>
+        /// Цех/отдел предстовитель оборудования
+        /// </summary>
+        public Division? Division { get; set; }
 
-        //Оборудование к документу
-        public EquipmentInDocument Equipments { get; set; }
+        public Guid RepairFacilityId { get; set; }
 
-        public Guid IdDivision { get; set; }
+        /// <summary>
+        /// Место нахождения оборудования (По принадлежности к ЭБ 1, ЭБ 2 и ОСО)
+        /// </summary>
+        public RepairFacility? RepairFacility { get; set; }
 
-        //Цех/отдел предстовитель оборудования
-        public Division Division { get; set; }
+        /// <summary>
+        /// Список регистрационных номеров связанных документовццт
+        /// </summary>
+        public List<Document>? Documents { get; set; }
 
-        public Guid IdPerfomersInDocument { get; set; }
+        /// <summary>
+        /// Список KKS оборудования
+        /// </summary>
+        public List<KKSEquipment>? KKSEquipment { get; set; }
 
-        //Исполнители работ
-        public PerfomerInDocuments Perfomer { get; set; }
-
-        public Guid IdRepairFacility { get; set; }
-
-        //Место нахождения оборудования (По пренадлежности к ЭБ 1, ЭБ 2 и ОСО
-        public RepairFacility RepairFacility { get; set; }
-
-        public Guid IdExecuteRepairDoc { get; set; }
-
-        //Номер принадлежности к документам
-        public ExecuteRepairDocuments ExecuteRepairDocuments { get; set; }
+        /// <summary>
+        /// Исполнители работ
+        /// </summary>
+        public List<Perfomer>? Perfomers { get; set; }
     }
 }

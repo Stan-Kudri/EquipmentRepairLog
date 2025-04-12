@@ -1,17 +1,33 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace EquipmentRepairLog.Core.Data.EquipmentModel
 {
     public class KKSEquipment : Entity
     {
-        //Идентификационный номер оборудования/детали
+        /// <summary>
+        /// Идентификационный номер оборудования/детали
+        /// </summary>
         [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Only Latin letters and numbers are allowed.")]
         public string KKS { get; set; } = string.Empty;
 
-        public Guid IdEquipmentName { get; set; } = Guid.Empty;
+        public Guid EquipmentId { get; set; } = Guid.Empty;
 
-        public required EquipmentName EquipmentName { get; set; }
+        public Guid EquipmentTypeId { get; set; } = Guid.Empty;
 
-        public List<KKSRepairDocument> KKSEquipmentDocuments { get; set; }
+        /// <summary>
+        /// Наименование оборудования
+        /// </summary>
+        public Equipment? Equipment { get; set; }
+
+        /// <summary>
+        /// Тип и(или) Марка оборудования
+        /// </summary>
+        public EquipmentType? EquipmentType { get; set; }
+
+        /// <summary>
+        /// Список документов для данного KKS
+        /// </summary>
+        public List<Document>? KKSEquipmentDocuments { get; set; }
     }
 }

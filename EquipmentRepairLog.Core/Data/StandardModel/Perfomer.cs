@@ -2,25 +2,20 @@
 
 namespace EquipmentRepairLog.Core.Data.StandardModel
 {
-    public class Division : Entity
+    public class Perfomer : Entity
     {
         /// <summary>
-        /// Наименование цеха владельца оборудования
+        /// Название организации/цеха исполнителя работ
         /// </summary>
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Номер цеха/отдела
-        /// </summary>
-        public int Number { get; set; }
-
-        /// <summary>
-        /// Аббревиатура владельца оборудования
+        /// Аббревиатура исполнителя работ
         /// </summary>
         public string Abbreviation { get; set; } = string.Empty;
 
         /// <summary>
-        /// Список документов для данного цеха/отдела
+        /// Список документов по исполнителю работ
         /// </summary>
         public List<Document>? Documents { get; set; }
     }

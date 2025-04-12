@@ -4,12 +4,24 @@ namespace EquipmentRepairLog.Core.Data.StandardModel
 {
     public class RepairFacility : Entity
     {
-        //Наименование принадлежности к объекту (ЭБ 1 / ЭБ 2 / ОСО)
+        /// <summary>
+        /// Наименование принадлежности к объекту (ЭБ 1 / ЭБ 2 / ОСО)
+        /// </summary>
         public string Name { get; set; } = string.Empty;
 
-        //Номер объекта
-        public int Number { get; set; }
+        /// <summary>
+        /// Аббревиатура объекта
+        /// </summary>
+        public string Abbreviation { get; set; } = string.Empty;
 
-        public List<Document> Documents { get; set; }
+        /// <summary>
+        /// Номер объекта
+        /// </summary>
+        public byte Number { get; set; }
+
+        /// <summary>
+        /// Список документов по объекту
+        /// </summary>
+        public List<Document>? Documents { get; set; }
     }
 }
