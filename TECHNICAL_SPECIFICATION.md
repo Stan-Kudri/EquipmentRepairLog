@@ -159,28 +159,73 @@ H --> L{АОМ}
 ## ER‑диаграмм 
 
 ```mermaid
-erDiagram 
+erDiagram
+	KIT-OF-DOCUMENTS{
+	    Guid MainDocumentId
+	    Guid RelatedDocumentId}
+	    
+	DOCUMENT{ 
+		Guid Id
+		Guid DocumentTypeId
+		Guid DivisionId
+		Guid PerfomerInDoc
+		Guid RepairFacilityId
+		DateTime RegistrationDate
+		DateTime RepairDate
+		DateTime ChangeDateRegistrNumber
+		string OrdinalNumber
+		string Note
+		string RegistrationNumber}	
+	    
+	DOCUMENT }o--o{ KIT-OF-DOCUMENTS: part   
 
-EXECUT-REPAIR-DOCUMENTATION{ Guid Id}
+	EQUIPMENT{ 
+		Guid Id
+		string Name
+		string Description}
+		
+	EQUIPMENT-TYPE { 
+		Guid Id
+		string Name} 	
+		
+	KKS-EQUIPMENT { 
+		Guid Id
+		string KKS
+		Guid EquipmentId
+		Guid EquipmentTypeId}
 
-SET-OF-DOCUMENTS}o--||EXECUT-REPAIR-DOCUMENTATION: part SET-OF-DOCUMENTS{ Guid Id Guid Document Guid ExecuteRepairDocument}
+	EQUIPMENT-TYPE ||--o{ EQUIPMENT : contains 
 
-DOCUMENT}o--||SET-OF-DOCUMENTS: part DOCUMENT{ Guid Id Guid TypeDocument Guid EquipmentInDocument Guid Division Guid PerfomerInDoc Guid PepairFacility DateTime RegistrationDate DateTime RepairDate DateTime ChangeDateRegistrNumber string OrdinalNumber string Note string RegistrNumber}
+	KKS-EQUIPMENT }o--|| EQUIPMENT : indicates
+	KKS-EQUIPMENT }o--|| EQUIPMENT-TYPE : indicates
+	KKS-EQUIPMENT }o--o{ DOCUMENT : indicates
 
-PERFOMER}o--o{ PERFOMER-OF-WORK: places PERFOMER{ Guid Id string PerfomerWork string Abbreviation} 
-PERFOMER-OF-WORK}o--o{ PERFOMER-IN-DOC: contains PERFOMER-OF-WORK { Guid Id Guid Document Guid Perfomer} 
-PERFOMER-IN-DOC}o--o{ DOCUMENT : contains PERFOMER-IN-DOC { Guid Id Guid Document Guid Perfomer}
+	DIVISION||--o{ DOCUMENT : place
+	DIVISION { 
+		Guid Id
+		string Name
+		string Abbreviation} 
+	
+	DOCUMENT-TYPE ||--o{ DOCUMENT : indicates
+	DOCUMENT-TYPE { 
+		Guid Id
+		string Name
+		string Abbreviation
+		byte ExecutiveRepairDocNumber
+		bool IsOnlyTypeDocInRepairLog} 
 
-EQUIPMENT-NAME||--o{ KKS : places EQUIPMENT-NAME{ Guid Id string Name }
-KKS}o--o{EQUIPMENT : contains KKS{ Guid Id string KKS Guid EquipmentName}
-EQUIPMENT}o--o{ EQUIPMENT-IN-DOCUMENT: contains EQUIPMENT{ Guid Id Guid KKS Guid EquipmentInDocument}
-EQUIPMENT-IN-DOCUMENT||--|{ DOCUMENT: contains EQUIPMENT-IN-DOCUMENT{ Guid id Guid Equipment Guid Document}
-
-TYPE-DOCUMENT||--|{ DOCUMENT : contains TYPE-DOCUMENT { Guid Id string Name int NumberTypeDoc bool IsOnlyTypeDocInERD}
-
-DIVISION||--|{ DOCUMENT : contains DIVISION { Guid Id string Name int NumberDivision }
-
-REPAIR-FACILITY||--|{ DOCUMENT : contains REPAIR-FACILITY { Guid Id string Facility int NumberFacility }
+	PERFOMER }o--o{ DOCUMENT : works
+	PERFOMER { 
+		Guid Id
+		string Name
+		string Abbreviation} 
+    		
+	REPAIR-FACILITY ||--o{ DOCUMENT : indicates
+	REPAIR-FACILITY{ 
+		Guid Id
+		string Name
+		string Abbreviation
+		byte Number} 
 ```
 
 ## Этапы разработки
@@ -191,9 +236,9 @@ REPAIR-FACILITY||--|{ DOCUMENT : contains REPAIR-FACILITY { Guid Id string Facil
 2. Создание проекта "Console" для проверки добавленного функционала;
 3. Создание проекта для Миграций БД.
 4. Создание проекта WPF для использования базового функционала.
-   1. Создание WPF проекта и определение компановки элементов для реализации функционала приложения;
+   1. Создание WPF проекта и определение компоновки элементов для реализации функционала приложения;
    2. Добавление элементов управления для проекта;
-   3. Реализация добовления документа в БД;
+   3. Реализация добавления документа в БД;
    4. Реализация удаления документа из БД и всех связанных с ним документов;
    5. Реализация возможности добавления нового документа к связанным документам;
    6. Возможность изменить/удалить/добавить информацию для документа(ов).

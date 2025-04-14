@@ -58,7 +58,7 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         public RepairFacility? RepairFacility { get; set; }
 
         /// <summary>
-        /// Список регистрационных номеров связанных документовццт
+        /// Список регистрационных номеров связанных документов
         /// </summary>
         public List<Document>? Documents { get; set; }
 
