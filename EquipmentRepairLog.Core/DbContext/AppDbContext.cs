@@ -31,6 +31,7 @@ namespace EquipmentRepairLog.Core.DBContext
         {
             modelBuilder.Entity<Division>(builder =>
             {
+                builder.ToTable("division");
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
                 builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
@@ -41,25 +42,28 @@ namespace EquipmentRepairLog.Core.DBContext
 
             modelBuilder.Entity<DocumentType>(builder =>
             {
+                builder.ToTable("document_type");
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
                 builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
                 builder.Property(x => x.Abbreviation).HasColumnName("abbreviation").IsRequired().HasMaxLength(32);
-                builder.Property(x => x.IsOnlyTypeDocInRepairLog).HasColumnName("IsSingleTypeDocument").IsRequired().HasColumnType("BOOLEAN");
+                builder.Property(x => x.IsOnlyTypeDocInRepairLog).HasColumnName("is_single_type_document").IsRequired().HasColumnType("BOOLEAN").HasDefaultValue(false);
                 builder.HasMany(x => x.Documents).WithOne(x => x.DocumentType).HasForeignKey(x => x.DocumentTypeId);
             });
 
             modelBuilder.Entity<Perfomer>(builder =>
             {
+                builder.ToTable("perfomer");
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
                 builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
                 builder.Property(x => x.Abbreviation).HasColumnName("abbreviation").IsRequired().HasMaxLength(32);
-                builder.HasMany(x => x.Documents).WithMany(x => x.Perfomers);
+                builder.HasMany(x => x.Documents).WithMany(x => x.Perfomers).UsingEntity(e => e.ToTable("perfomer_work_document"));
             });
 
             modelBuilder.Entity<RepairFacility>(builder =>
             {
+                builder.ToTable("repair_facility");
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
                 builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
@@ -71,15 +75,17 @@ namespace EquipmentRepairLog.Core.DBContext
 
             modelBuilder.Entity<Equipment>(builder =>
             {
+                builder.ToTable("equipment");
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
                 builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
-                builder.Property(x => x.Description).HasColumnName("description").HasMaxLength(1028);
+                builder.Property(x => x.Description).HasColumnName("description").HasMaxLength(256).HasDefaultValue(string.Empty);
                 builder.HasMany(x => x.EquipmentsKKS).WithOne(x => x.Equipment).HasForeignKey(x => x.EquipmentId);
             });
 
             modelBuilder.Entity<EquipmentType>(builder =>
             {
+                builder.ToTable("equipment_type");
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
                 builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
@@ -87,11 +93,26 @@ namespace EquipmentRepairLog.Core.DBContext
 
             modelBuilder.Entity<KKSEquipment>(builder =>
             {
+                builder.ToTable("kks_equipment");
                 builder.HasKey(x => x.Id);
                 builder.Property(x => x.Id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
                 builder.Property(x => x.KKS).HasColumnName("kks").IsRequired().HasMaxLength(128);
                 builder.HasOne(x => x.Equipment).WithMany(x => x.EquipmentsKKS);
-                builder.HasMany(x => x.KKSEquipmentDocuments).WithMany(x => x.KKSEquipment);
+                builder.HasMany(x => x.KKSEquipmentDocuments).WithMany(x => x.KKSEquipment).UsingEntity(e => e.ToTable("equipment_KKS_documents"));
+            });
+
+            modelBuilder.Entity<Document>(builder =>
+            {
+                builder.ToTable("document");
+                builder.HasKey(x => x.Id);
+                builder.Property(x => x.Id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
+                builder.Property(x => x.RegistrationDate).IsRequired().HasColumnType("DATETIME").HasColumnName("date_registration").HasDefaultValue(DateTime.Now);
+                builder.Property(x => x.RepairDate).IsRequired().HasColumnName("repair_date").HasColumnType("DATETIME");
+                builder.Property(x => x.ChangeDateRegistrNumber).HasColumnName("change_date_registration").HasColumnType("DATETIME").HasDefaultValue(null);
+                builder.Property(x => x.OrdinalNumber).IsRequired().HasColumnName("ordinal_number").HasColumnType("INTEGER");
+                builder.Property(x => x.RegistrationNumber).IsRequired().HasColumnName("registration_numer").HasMaxLength(128);
+                builder.Property(x => x.Note).HasColumnName("note").HasMaxLength(256);
+                builder.HasMany(x => x.Documents).WithMany().UsingEntity(x => x.ToTable("execut_repair_documentation"));
             });
         }
     }

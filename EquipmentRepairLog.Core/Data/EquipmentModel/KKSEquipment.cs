@@ -28,6 +28,6 @@ namespace EquipmentRepairLog.Core.Data.EquipmentModel
         /// <summary>
         /// Список документов для данного KKS
         /// </summary>
-        public List<Document>? KKSEquipmentDocuments { get; set; }
+        public List<Document>? KKSEquipmentDocuments { get; set; } = new List<Document>();
     }
 }
