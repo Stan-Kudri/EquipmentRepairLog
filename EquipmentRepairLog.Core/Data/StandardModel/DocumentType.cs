@@ -27,6 +27,6 @@ namespace EquipmentRepairLog.Core.Data.StandardModel
         /// <summary>
         /// Список документов для данного типа документа
         /// </summary>
-        public List<Document>? Documents { get; set; }
+        public List<Document>? Documents { get; set; } = new List<Document>();
     }
 }

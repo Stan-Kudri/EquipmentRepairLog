@@ -15,11 +15,11 @@
         /// <summary>
         /// Список KKS оборудования
         /// </summary>
-        public List<KKSEquipment>? EquipmentsKKS { get; set; } = null;
+        public List<KKSEquipment>? EquipmentsKKS { get; set; } = new List<KKSEquipment>();
 
         /// <summary>
         /// Список типов/марок оборудования
         /// </summary>
-        public List<EquipmentType>? EquipmentTypes { get; set; } = null;
+        public List<EquipmentType>? EquipmentTypes { get; set; } = new List<EquipmentType>();
     }
 }

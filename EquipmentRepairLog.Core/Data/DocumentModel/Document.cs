@@ -60,16 +60,16 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// <summary>
         /// Список регистрационных номеров связанных документов
         /// </summary>
-        public List<Document>? Documents { get; set; }
+        public List<Document>? Documents { get; set; } = new List<Document>();
 
         /// <summary>
         /// Список KKS оборудования
         /// </summary>
-        public List<KKSEquipment>? KKSEquipment { get; set; }
+        public List<KKSEquipment>? KKSEquipment { get; set; } = new List<KKSEquipment>();
 
         /// <summary>
         /// Исполнители работ
         /// </summary>
-        public List<Perfomer>? Perfomers { get; set; }
+        public List<Perfomer>? Perfomers { get; set; } = new List<Perfomer>();
     }
 }
