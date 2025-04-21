@@ -6,11 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 var db = new DbContextFactory().Create();
 
-var equipmentType = new EquipmentType() { Name = "КПЛВ.49833-12" };
-db.EquipmentTypes.Add(equipmentType);
-
 var equipment = new Equipment() { Name = "Клапан запорный", Description = "Клапан новый" };
 db.Equipments.Add(equipment);
+
+var equipmentType = new EquipmentType() { Name = "КПЛВ.49833-12", Equipment = equipment };
+db.EquipmentTypes.Add(equipmentType);
+
 
 var kks = new KKSEquipment() { Equipment = equipment, EquipmentType = equipmentType, KKS = "10KAA22AA345" };
 db.KKSEquipments.Add(kks);
