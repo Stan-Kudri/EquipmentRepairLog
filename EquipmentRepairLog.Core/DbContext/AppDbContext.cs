@@ -1,6 +1,7 @@
 ﻿using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.User;
 using EquipmentRepairLog.Core.DBContext.Configuration;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,8 @@ namespace EquipmentRepairLog.Core.DBContext
         public AppDbContext(DbContextOptions options) : base(options)
         {
         }
+
+        public DbSet<User> Users { get; set; }
 
         public DbSet<Division> Divisions { get; set; }
 

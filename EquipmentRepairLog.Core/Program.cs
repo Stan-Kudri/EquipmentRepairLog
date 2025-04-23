@@ -1,6 +1,7 @@
 ﻿using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.User;
 using EquipmentRepairLog.Core.DBContext;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -69,6 +70,10 @@ kks.KKSEquipmentDocuments.AddRange(docFirst, docSecond);
 perfomer.Documents.AddRange(docFirst, docSecond);
 
 db.Documents.AddRange(docFirst, docSecond);
+db.SaveChanges();
+
+var user = new User("Stan228337", "Qav228337");
+db.Users.Add(user);
 db.SaveChanges();
 
 static IServiceCollection AppServiceDI()
