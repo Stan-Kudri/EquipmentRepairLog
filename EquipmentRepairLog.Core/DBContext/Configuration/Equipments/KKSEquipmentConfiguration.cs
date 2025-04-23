@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EquipmentRepairLog.Core.DBContext.Configuration
+namespace EquipmentRepairLog.Core.DBContext.Configuration.Equipments
 {
     public class KKSEquipmentConfiguration : EntityBaseConfiguration<KKSEquipment>
     {
