@@ -28,6 +28,16 @@ namespace EquipmentRepairLog.Core.Service
             }
 
             _dbContext.Divisions.Add(division);
+            _dbContext.SaveChanges();
+        }
+
+        public void Remove(Guid id)
+        {
+            var item = _dbContext.Divisions.FirstOrDefault(e => e.Id == id)
+                        ?? throw new InvalidOperationException("Interaction element not found.");
+
+            _dbContext.Divisions.Remove(item);
+            _dbContext.SaveChanges();
         }
 
         public Division? GetDivision(Guid id)
