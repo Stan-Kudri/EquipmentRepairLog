@@ -23,7 +23,7 @@ namespace EquipmentRepairLog.Core.Service
             }
             if (_dbContext.Perfomers.FirstOrDefault(e => e.Id == perfomer.Id) != null)
             {
-                perfomer.Id = GetIdDivision();
+                perfomer.Id = ChangeIdPerfomer();
             }
 
             _dbContext.Perfomers.Add(perfomer);
@@ -39,16 +39,16 @@ namespace EquipmentRepairLog.Core.Service
             _dbContext.SaveChanges();
         }
 
-        public Perfomer? GetDivision(Guid id)
+        public Perfomer? GetPerfomer(Guid id)
             => _dbContext.Perfomers.FirstOrDefault(e => e.Id == id);
 
-        public Perfomer? GetDivision(string abbreviation)
+        public Perfomer? GetPerfomer(string abbreviation)
             => _dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == abbreviation);
 
-        private Guid GetIdDivision()
+        private Guid ChangeIdPerfomer()
         {
             var id = Guid.NewGuid();
-            return _dbContext.Perfomers.FirstOrDefault(d => d.Id == id) == null ? id : GetIdDivision();
+            return _dbContext.Perfomers.FirstOrDefault(d => d.Id == id) == null ? id : ChangeIdPerfomer();
         }
     }
 }
