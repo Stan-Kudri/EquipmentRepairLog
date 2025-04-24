@@ -24,7 +24,7 @@ namespace EquipmentRepairLog.Core.Service
             }
             if (_dbContext.Divisions.FirstOrDefault(e => e.Id == division.Id) != null)
             {
-                division.Id = GetIdDivision();
+                division.Id = ChangeIdDivision();
             }
 
             _dbContext.Divisions.Add(division);
@@ -46,16 +46,11 @@ namespace EquipmentRepairLog.Core.Service
         public Division? GetDivision(int number)
             => _dbContext.Divisions.FirstOrDefault(e => e.Number == number);
 
-        private Guid GetIdDivision()
+        private Guid ChangeIdDivision()
         {
             var id = Guid.NewGuid();
 
-            if (_dbContext.Divisions.FirstOrDefault(d => d.Id == id) == null)
-            {
-                return id;
-            }
-
-            return GetIdDivision();
+            return _dbContext.Divisions.FirstOrDefault(d => d.Id == id) == null ? id : ChangeIdDivision();
         }
     }
 }
