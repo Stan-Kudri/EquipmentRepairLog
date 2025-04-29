@@ -58,11 +58,6 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         public RepairFacility? RepairFacility { get; set; }
 
         /// <summary>
-        /// Список регистрационных номеров связанных документов
-        /// </summary>
-        public List<Document>? Documents { get; set; } = new List<Document>();
-
-        /// <summary>
         /// Список KKS оборудования
         /// </summary>
         public List<KKSEquipment>? KKSEquipment { get; set; } = new List<KKSEquipment>();
@@ -71,5 +66,11 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// Исполнители работ
         /// </summary>
         public List<Perfomer>? Perfomers { get; set; } = new List<Perfomer>();
+
+        /// <summary>
+        /// Список комплектов связанных с документом
+        /// </summary>
+        public List<ExecuteRepairDocument>? ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
+
     }
 }

@@ -3,9 +3,11 @@ using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Data.User;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Service;
 using Microsoft.Extensions.DependencyInjection;
 
 var db = new DbContextFactory().Create();
+var documentService = new DocumentService(db);
 
 var equipment = new Equipment() { Name = "Клапан запорный", Description = "Клапан новый" };
 db.Equipments.Add(equipment);
@@ -44,6 +46,8 @@ db.Perfomers.Add(perfomer);
 var repairFacility = new RepairFacility() { Number = 1, Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1" };
 db.RepairFacilities.Add(repairFacility);
 
+db.SaveChanges();
+
 var docFirst = new Document()
 {
     Division = division,
@@ -51,7 +55,9 @@ var docFirst = new Document()
     OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "FirstNumber"
+    RegistrationNumber = "FirstNumber",
+    KKSEquipment = new List<KKSEquipment>() { kks },
+    Perfomers = new List<Perfomer>() { perfomer }
 };
 var docSecond = new Document()
 {
@@ -60,17 +66,12 @@ var docSecond = new Document()
     OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "SecondNumber"
+    RegistrationNumber = "SecondNumber",
+    KKSEquipment = new List<KKSEquipment>() { kks },
+    Perfomers = new List<Perfomer>() { perfomer }
 };
 
-docFirst.Documents.Add(docSecond);
-docSecond.Documents.Add(docFirst);
-
-kks.KKSEquipmentDocuments.AddRange(docFirst, docSecond);
-perfomer.Documents.AddRange(docFirst, docSecond);
-
-db.Documents.AddRange(docFirst, docSecond);
-db.SaveChanges();
+documentService.AddAllDocuments(new List<Document> { docFirst, docSecond });
 
 var user = new User("Stan228337", "Qav228337");
 db.Users.Add(user);
