@@ -29,7 +29,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            if (!dbContext.ValidDocFromDB(document))
+            if (!dbContext.ValidDataDocumentTypeAndNumber(document))
             {
                 throw new ArgumentException("Data already in use.", nameof(document));
             }
@@ -47,7 +47,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            if (!dbContext.ValidDocFromDB(document))
+            if (!dbContext.ValidDataDocumentTypeAndNumber(document))
             {
                 throw new ArgumentException("Data already in use.", nameof(document));
             }

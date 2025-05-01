@@ -6,12 +6,10 @@ namespace EquipmentRepairLog.Core.Extension
     public static class ValidDocuDBExtension
     {
         public static bool ValidListDocFromDB(this AppDbContext dbContext, List<Document> documents)
-            => documents.All(dbContext.ValidDocFromDB);
+            => documents.All(dbContext.ValidDataDocumentTypeAndNumber);
 
-        public static bool ValidDocFromDB(this AppDbContext dbContext, Document document)
-        {
-            return dbContext.Documents.FirstOrDefault(e => (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType)
+        public static bool ValidDataDocumentTypeAndNumber(this AppDbContext dbContext, Document document)
+            => dbContext.Documents.FirstOrDefault(e => (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType)
                                                            || e.RegistrationNumber == document.RegistrationNumber) == null;
-        }
     }
 }

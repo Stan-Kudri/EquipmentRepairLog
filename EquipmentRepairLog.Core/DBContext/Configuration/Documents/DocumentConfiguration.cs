@@ -10,9 +10,9 @@ namespace EquipmentRepairLog.Core.DBContext.Configuration.Documents
         {
             builder.ToTable("document");
             builder.Property(x => x.RegistrationDate).IsRequired().HasColumnType("DATETIME").HasColumnName("date_registration").HasDefaultValue(DateTime.Now);
-            builder.Property(x => x.RepairDate).IsRequired().HasColumnName("repair_date").HasColumnType("DATETIME");
-            builder.Property(x => x.ChangeDateRegistrNumber).HasColumnName("change_date_registration").HasColumnType("DATETIME").HasDefaultValue(null);
-            builder.Property(x => x.OrdinalNumber).IsRequired().HasColumnName("ordinal_number").HasColumnType("INTEGER");
+            builder.Property(x => x.RepairDate).IsRequired().HasColumnName("repair_date");
+            builder.Property(x => x.ChangeDateRegistrNumber).HasColumnName("change_date_registration").HasDefaultValue(null);
+            builder.Property(x => x.OrdinalNumber).IsRequired().HasColumnName("ordinal_number");
             builder.Property(x => x.RegistrationNumber).IsRequired().HasColumnName("registration_numer").HasMaxLength(128);
             builder.HasIndex(x => x.RegistrationNumber).IsUnique();
             builder.Property(x => x.Note).HasColumnName("note").HasMaxLength(256);
