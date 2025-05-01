@@ -8,6 +8,7 @@ namespace EquipmentRepairLog.Core.DBContext
         {
             var builder = new DbContextOptionsBuilder().UseSqlite($"Data Source=DbContextApp.db");
             var dbContext = new AppDbContext(builder.Options);
+            dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
             return dbContext;
         }

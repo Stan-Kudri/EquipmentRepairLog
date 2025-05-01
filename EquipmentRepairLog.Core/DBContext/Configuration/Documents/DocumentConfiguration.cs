@@ -14,8 +14,13 @@ namespace EquipmentRepairLog.Core.DBContext.Configuration.Documents
             builder.Property(x => x.ChangeDateRegistrNumber).HasColumnName("change_date_registration").HasColumnType("DATETIME").HasDefaultValue(null);
             builder.Property(x => x.OrdinalNumber).IsRequired().HasColumnName("ordinal_number").HasColumnType("INTEGER");
             builder.Property(x => x.RegistrationNumber).IsRequired().HasColumnName("registration_numer").HasMaxLength(128);
+            builder.HasIndex(x => x.RegistrationNumber).IsUnique();
             builder.Property(x => x.Note).HasColumnName("note").HasMaxLength(256);
-            builder.HasMany(x => x.ExecuteRepairDocuments).WithMany(x => x.Documents).UsingEntity(x => x.ToTable("document_included_execute_repair_document"));
+            builder.HasMany(x => x.ExecuteRepairDocuments).WithMany(x => x.Documents)
+                                                          .UsingEntity<Dictionary<string, object>>(
+                                                                        x => x.HasOne<ExecuteRepairDocument>().WithMany().OnDelete(DeleteBehavior.Cascade),
+                                                                        x => x.HasOne<Document>().WithMany().OnDelete(DeleteBehavior.Cascade),
+                                                                        x => x.ToTable("document_included_execute_repair_document"));
         }
     }
 }

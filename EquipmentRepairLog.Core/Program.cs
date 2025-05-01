@@ -77,6 +77,9 @@ var user = new User("Stan228337", "Qav228337");
 db.Users.Add(user);
 db.SaveChanges();
 
+db.ChangeTracker.Clear();
+documentService.RemoveERD(docFirst.RegistrationNumber);
+
 static IServiceCollection AppServiceDI()
             => new ServiceCollection().AddSingleton<AppDbContext>()
                                       .AddScoped(e => e.GetRequiredService<DbContextFactory>().Create());
