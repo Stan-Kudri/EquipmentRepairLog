@@ -3,6 +3,7 @@ using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Data.User;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Extension;
 using EquipmentRepairLog.Core.Service;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,7 +15,6 @@ db.Equipments.Add(equipment);
 
 var equipmentType = new EquipmentType() { Name = "КПЛВ.49833-12", Equipment = equipment };
 db.EquipmentTypes.Add(equipmentType);
-
 
 var kks = new KKSEquipment() { Equipment = equipment, EquipmentType = equipmentType, KKS = "10KAA22AA345" };
 db.KKSEquipments.Add(kks);
@@ -78,7 +78,25 @@ db.Users.Add(user);
 db.SaveChanges();
 
 db.ChangeTracker.Clear();
-documentService.RemoveERD(docFirst.RegistrationNumber);
+//documentService.RemoveERD(docFirst.RegistrationNumber);
+
+
+var equipmentNewFirst = new Equipment() { Name = "Клапан запорный", Description = "Клапан новый" };
+var equipmentTypeNewFirst = new EquipmentType() { Name = "НГ-2265", Equipment = equipmentNewFirst };
+var kksNewFirst = new KKSEquipment() { Equipment = equipmentNewFirst, EquipmentType = equipmentTypeNewFirst, KKS = "20KAA22AA345" };
+
+var docNewFirst = new Document()
+{
+    Division = division,
+    DocumentType = docTypeSecond,
+    OrdinalNumber = 1,
+    RepairFacility = repairFacility,
+    RepairDate = DateTime.Now,
+    RegistrationNumber = "SecondNumber",
+    KKSEquipment = new List<KKSEquipment>() { kksNewFirst },
+    Perfomers = new List<Perfomer>() { perfomer }
+};
+db.AddMissingEquipmentDocuments(docNewFirst.KKSEquipment);
 
 static IServiceCollection AppServiceDI()
             => new ServiceCollection().AddSingleton<AppDbContext>()

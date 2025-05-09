@@ -11,7 +11,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(documents);
 
-            if (!dbContext.ValidListDocFromDB(documents))
+            if (!dbContext.DocumentsValidationDataDocumentTypeAndNumber(documents))
             {
                 throw new ArgumentException("Data already in use.", nameof(documents));
             }
@@ -29,7 +29,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            if (!dbContext.ValidDataDocumentTypeAndNumber(document))
+            if (!dbContext.DocValidDataDocumentTypeAndNumber(document))
             {
                 throw new ArgumentException("Data already in use.", nameof(document));
             }
@@ -47,7 +47,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            if (!dbContext.ValidDataDocumentTypeAndNumber(document))
+            if (!dbContext.DocValidDataDocumentTypeAndNumber(document))
             {
                 throw new ArgumentException("Data already in use.", nameof(document));
             }
@@ -76,14 +76,20 @@ namespace EquipmentRepairLog.Core.Service
 
         public void RemoveERD(string registrationNumberDoc)
         {
-            var docByRegistrationNumber = dbContext.Documents.Include(e => e.ExecuteRepairDocuments).FirstOrDefault(e => e.RegistrationNumber == registrationNumberDoc)
-                                                                    ?? throw new ArgumentException("Registration number not found.", nameof(registrationNumberDoc));
+            var docByRegistrationNumber = dbContext.Documents.Include(e => e.ExecuteRepairDocuments)
+                                                             .Where(e => e.RegistrationNumber == registrationNumberDoc)
+                                                             .Select(e => new { ExecuteRepairDocuments = e.ExecuteRepairDocuments, })
+                                                             .First()
+                                                             ?? throw new ArgumentException("Registration number not found.", nameof(registrationNumberDoc));
 
             var executeRepairDocuments = docByRegistrationNumber?.ExecuteRepairDocuments == null || docByRegistrationNumber?.ExecuteRepairDocuments?.Count != 0
                                                 ? docByRegistrationNumber?.ExecuteRepairDocuments
                                                 : throw new ArgumentException($"Document with registration number {registrationNumberDoc} does not belong to any set of executive repair documentation.");
 
-            var documents = dbContext.Documents.Include(e => e.ExecuteRepairDocuments).Where(document => document.ExecuteRepairDocuments.Any(e => executeRepairDocuments.Any(x => x.Id == e.Id))).ToList();
+            var executeRepairDocumentsId = executeRepairDocuments.ConvertAll(e => e.Id);
+
+            var documents = dbContext.ExecuteRepairDocuments.Include(erd => erd.Documents).Where(e => executeRepairDocumentsId.Contains(e.Id)).SelectMany(e => e.Documents).Distinct();
+
             dbContext.Documents.RemoveRange(documents);
             dbContext.ExecuteRepairDocuments.RemoveRange(executeRepairDocuments);
 

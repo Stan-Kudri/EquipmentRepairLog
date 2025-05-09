@@ -13,5 +13,10 @@
         /// Наименование оборудования
         /// </summary>
         public Equipment? Equipment { get; set; }
+
+        public override bool Equals(object obj) => Equals(obj as EquipmentType);
+
+        public bool Equals(EquipmentType type)
+            => type != null && type.Name == Name;
     }
 }
