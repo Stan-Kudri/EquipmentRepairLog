@@ -80,10 +80,16 @@ db.SaveChanges();
 db.ChangeTracker.Clear();
 //documentService.RemoveERD(docFirst.RegistrationNumber);
 
+var strKKS = "20KAA22AA345 -- 20KAA21AA345 20KAA22AA345";
+if (strKKS.KKSValidation(out var resultKKS))
+{
+    Console.WriteLine(string.Join(' ', resultKKS));
+}
 
 var equipmentNewFirst = new Equipment() { Name = "Клапан запорный", Description = "Клапан новый" };
 var equipmentTypeNewFirst = new EquipmentType() { Name = "НГ-2265", Equipment = equipmentNewFirst };
-var kksNewFirst = new KKSEquipment() { Equipment = equipmentNewFirst, EquipmentType = equipmentTypeNewFirst, KKS = "20KAA22AA345" };
+var kksNewFirst = new KKSEquipment() { Equipment = equipmentNewFirst, EquipmentType = equipmentTypeNewFirst, KKS = "20KAA22AA345 -- 20KAA21AA345 20KAA22AA345" };
+var kksNewSecond = new KKSEquipment() { Equipment = equipmentNewFirst, EquipmentType = equipmentTypeNewFirst, KKS = "20KAA11AA345 -- 20KAA21AA335 20KAA22AA325" };
 
 var docNewFirst = new Document()
 {
@@ -93,10 +99,12 @@ var docNewFirst = new Document()
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
     RegistrationNumber = "SecondNumber",
-    KKSEquipment = new List<KKSEquipment>() { kksNewFirst },
+    KKSEquipment = new List<KKSEquipment>() { kksNewFirst, kksNewSecond },
     Perfomers = new List<Perfomer>() { perfomer }
 };
-db.AddMissingEquipmentDocuments(docNewFirst.KKSEquipment);
+var equipmentService = new EquipmentService(db);
+equipmentService.AddRangeEquipment([kksNewFirst, kksNewSecond]);
+//db.AddMissingEquipmentDocuments(docNewFirst.KKSEquipment);
 
 static IServiceCollection AppServiceDI()
             => new ServiceCollection().AddSingleton<AppDbContext>()
