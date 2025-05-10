@@ -78,7 +78,6 @@ db.Users.Add(user);
 db.SaveChanges();
 
 db.ChangeTracker.Clear();
-//documentService.RemoveERD(docFirst.RegistrationNumber);
 
 var strKKS = "20KAA22AA345 -- 20KAA21AA345 20KAA22AA345";
 if (strKKS.KKSValidation(out var resultKKS))
@@ -104,7 +103,6 @@ var docNewFirst = new Document()
 };
 var equipmentService = new EquipmentService(db);
 equipmentService.AddRangeEquipment([kksNewFirst, kksNewSecond]);
-//db.AddMissingEquipmentDocuments(docNewFirst.KKSEquipment);
 
 static IServiceCollection AppServiceDI()
             => new ServiceCollection().AddSingleton<AppDbContext>()

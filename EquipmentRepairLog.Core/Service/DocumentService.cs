@@ -1,6 +1,5 @@
 ﻿using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.DBContext;
-using EquipmentRepairLog.Core.Extension;
 using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
@@ -11,7 +10,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(documents);
 
-            if (!dbContext.DocumentsValidationDataDocumentTypeAndNumber(documents))
+            if (!DocumentsValidationDataDocumentTypeAndNumber(documents))
             {
                 throw new ArgumentException("Data already in use.", nameof(documents));
             }
@@ -29,7 +28,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            if (!dbContext.DocValidDataDocumentTypeAndNumber(document))
+            if (!DocValidDataDocumentTypeAndNumber(document))
             {
                 throw new ArgumentException("Data already in use.", nameof(document));
             }
@@ -47,7 +46,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            if (!dbContext.DocValidDataDocumentTypeAndNumber(document))
+            if (!DocValidDataDocumentTypeAndNumber(document))
             {
                 throw new ArgumentException("Data already in use.", nameof(document));
             }
@@ -78,9 +77,8 @@ namespace EquipmentRepairLog.Core.Service
         {
             var docByRegistrationNumber = dbContext.Documents.Include(e => e.ExecuteRepairDocuments)
                                                              .Where(e => e.RegistrationNumber == registrationNumberDoc)
-                                                             .Select(e => new { ExecuteRepairDocuments = e.ExecuteRepairDocuments, })
-                                                             .First()
-                                                             ?? throw new ArgumentException("Registration number not found.", nameof(registrationNumberDoc));
+                                                             .Select(e => new { e.ExecuteRepairDocuments, })
+                                                             .First();
 
             var executeRepairDocuments = docByRegistrationNumber?.ExecuteRepairDocuments == null || docByRegistrationNumber?.ExecuteRepairDocuments?.Count != 0
                                                 ? docByRegistrationNumber?.ExecuteRepairDocuments
@@ -101,5 +99,12 @@ namespace EquipmentRepairLog.Core.Service
 
         public Document? GetDocument(string registrationNumber)
             => dbContext.Documents.AsNoTracking().FirstOrDefault(e => e.RegistrationNumber == registrationNumber);
+
+        public bool DocumentsValidationDataDocumentTypeAndNumber(List<Document> documents)
+            => documents.All(DocValidDataDocumentTypeAndNumber);
+
+        public bool DocValidDataDocumentTypeAndNumber(Document document)
+            => dbContext.Documents.FirstOrDefault(e => (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType)
+                                                           || e.RegistrationNumber == document.RegistrationNumber) == null;
     }
 }
