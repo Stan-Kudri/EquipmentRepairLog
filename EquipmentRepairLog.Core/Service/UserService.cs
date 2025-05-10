@@ -1,5 +1,6 @@
 ﻿using EquipmentRepairLog.Core.Data.User;
 using EquipmentRepairLog.Core.DBContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
 {
@@ -11,10 +12,7 @@ namespace EquipmentRepairLog.Core.Service
 
         public void Add(User user)
         {
-            if (user == null)
-            {
-                throw new ArgumentException("The received parameters are not correct.");
-            }
+            ArgumentNullException.ThrowIfNull(user);
 
             if (_dbContext.Users.Any(e => e.Username == user.Username))
             {
@@ -26,12 +24,9 @@ namespace EquipmentRepairLog.Core.Service
         }
 
         public User? GetUser(string username, string passwordHash)
-            => _dbContext.Users.FirstOrDefault(e => e.Username == username && e.PasswordHash == passwordHash);
+            => _dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username && e.PasswordHash == passwordHash);
 
         public bool IsFreeUsername(string username)
-            => _dbContext.Users.FirstOrDefault(e => e.Username == username) == null;
-
-        public bool IsUserData(User user)
-            => _dbContext.Users.FirstOrDefault(e => e.Username == user.Username && e.PasswordHash == user.PasswordHash) != null;
+            => _dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username) == null;
     }
 }

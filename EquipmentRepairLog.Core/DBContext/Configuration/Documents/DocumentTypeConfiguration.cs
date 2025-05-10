@@ -11,7 +11,7 @@ namespace EquipmentRepairLog.Core.DBContext.Configuration.Documents
             builder.ToTable("document_type");
             builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
             builder.Property(x => x.Abbreviation).HasColumnName("abbreviation").IsRequired().HasMaxLength(32);
-            builder.Property(x => x.IsOnlyTypeDocInRepairLog).HasColumnName("is_single_type_document").IsRequired().HasColumnType("BOOLEAN").HasDefaultValue(false);
+            builder.Property(x => x.IsOnlyTypeDocInRepairLog).HasColumnName("is_single_type_document").IsRequired().HasDefaultValue(false);
             builder.HasMany(x => x.Documents).WithOne(x => x.DocumentType).HasForeignKey(x => x.DocumentTypeId).IsRequired();
         }
     }

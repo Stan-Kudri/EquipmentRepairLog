@@ -21,5 +21,10 @@
         /// Список типов/марок оборудования
         /// </summary>
         public List<EquipmentType>? EquipmentTypes { get; set; } = new List<EquipmentType>();
+
+        public override bool Equals(object obj) => Equals(obj as Equipment);
+
+        public bool Equals(Equipment equipment)
+            => equipment != null && equipment.Description == Description && equipment.Name == Name;
     }
 }

@@ -31,6 +31,8 @@ namespace EquipmentRepairLog.Core.DBContext
 
         public DbSet<Document> Documents { get; set; }
 
+        public DbSet<ExecuteRepairDocument> ExecuteRepairDocuments { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
             => modelBuilder.ApplyConfigurationsFromAssembly(typeof(DivisionConfiguration).Assembly);
     }

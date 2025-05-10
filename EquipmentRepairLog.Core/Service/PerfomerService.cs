@@ -12,18 +12,12 @@ namespace EquipmentRepairLog.Core.Service
 
         public void Add(Perfomer perfomer)
         {
-            if (perfomer == null)
-            {
-                throw new ArgumentNullException("Transmitted data error.", nameof(perfomer));
-            }
+            ArgumentNullException.ThrowIfNull(perfomer);
+
             if (_dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == perfomer.Abbreviation
                                                         || e.Name == perfomer.Name) != null)
             {
                 throw new ArgumentException("Data already in use.", nameof(perfomer));
-            }
-            if (_dbContext.Perfomers.FirstOrDefault(e => e.Id == perfomer.Id) != null)
-            {
-                perfomer.Id = ChangeIdPerfomer();
             }
 
             _dbContext.Perfomers.Add(perfomer);
@@ -44,11 +38,5 @@ namespace EquipmentRepairLog.Core.Service
 
         public Perfomer? GetPerfomer(string abbreviation)
             => _dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == abbreviation);
-
-        private Guid ChangeIdPerfomer()
-        {
-            var id = Guid.NewGuid();
-            return _dbContext.Perfomers.FirstOrDefault(d => d.Id == id) == null ? id : ChangeIdPerfomer();
-        }
     }
 }

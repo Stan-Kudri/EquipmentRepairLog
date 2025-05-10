@@ -1,5 +1,6 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.DBContext;
+using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
 {
@@ -12,19 +13,13 @@ namespace EquipmentRepairLog.Core.Service
 
         public void Add(Division division)
         {
-            if (division == null)
-            {
-                throw new ArgumentNullException("Transmitted data error.", nameof(division));
-            }
+            ArgumentNullException.ThrowIfNull(division);
+
             if (_dbContext.Divisions.FirstOrDefault(e => e.Abbreviation == division.Abbreviation
                                                         || e.Name == division.Name
                                                         || e.Number == division.Number) != null)
             {
                 throw new ArgumentException("Data already in use.", nameof(division));
-            }
-            if (_dbContext.Divisions.FirstOrDefault(e => e.Id == division.Id) != null)
-            {
-                division.Id = ChangeIdDivision();
             }
 
             _dbContext.Divisions.Add(division);
@@ -41,16 +36,9 @@ namespace EquipmentRepairLog.Core.Service
         }
 
         public Division? GetDivision(Guid id)
-            => _dbContext.Divisions.FirstOrDefault(e => e.Id == id);
+            => _dbContext.Divisions.AsNoTracking().FirstOrDefault(e => e.Id == id);
 
         public Division? GetDivision(int number)
-            => _dbContext.Divisions.FirstOrDefault(e => e.Number == number);
-
-        private Guid ChangeIdDivision()
-        {
-            var id = Guid.NewGuid();
-
-            return _dbContext.Divisions.FirstOrDefault(d => d.Id == id) == null ? id : ChangeIdDivision();
-        }
+            => _dbContext.Divisions.AsNoTracking().FirstOrDefault(e => e.Number == number);
     }
 }
