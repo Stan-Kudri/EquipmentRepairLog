@@ -3,40 +3,35 @@ using EquipmentRepairLog.Core.DBContext;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class PerfomerService
+    public class PerfomerService(AppDbContext dbContext)
     {
-        private readonly AppDbContext _dbContext;
-
-        public PerfomerService(AppDbContext dbContext)
-            => _dbContext = dbContext;
-
         public void Add(Perfomer perfomer)
         {
             ArgumentNullException.ThrowIfNull(perfomer);
 
-            if (_dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == perfomer.Abbreviation
+            if (dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == perfomer.Abbreviation
                                                         || e.Name == perfomer.Name) != null)
             {
                 throw new ArgumentException("Data already in use.", nameof(perfomer));
             }
 
-            _dbContext.Perfomers.Add(perfomer);
-            _dbContext.SaveChanges();
+            dbContext.Perfomers.Add(perfomer);
+            dbContext.SaveChanges();
         }
 
         public void Remove(Guid id)
         {
-            var item = _dbContext.Perfomers.FirstOrDefault(e => e.Id == id)
+            var item = dbContext.Perfomers.FirstOrDefault(e => e.Id == id)
                         ?? throw new InvalidOperationException("Interaction element not found.");
 
-            _dbContext.Perfomers.Remove(item);
-            _dbContext.SaveChanges();
+            dbContext.Perfomers.Remove(item);
+            dbContext.SaveChanges();
         }
 
         public Perfomer? GetPerfomer(Guid id)
-            => _dbContext.Perfomers.FirstOrDefault(e => e.Id == id);
+            => dbContext.Perfomers.FirstOrDefault(e => e.Id == id);
 
         public Perfomer? GetPerfomer(string abbreviation)
-            => _dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == abbreviation);
+            => dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == abbreviation);
     }
 }

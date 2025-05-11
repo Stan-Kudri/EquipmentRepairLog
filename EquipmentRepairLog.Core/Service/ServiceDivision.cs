@@ -4,41 +4,36 @@ using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class ServiceDivision
+    public class ServiceDivision(AppDbContext dbContext)
     {
-        private readonly AppDbContext _dbContext;
-
-        public ServiceDivision(AppDbContext dbContext)
-            => _dbContext = dbContext;
-
         public void Add(Division division)
         {
             ArgumentNullException.ThrowIfNull(division);
 
-            if (_dbContext.Divisions.FirstOrDefault(e => e.Abbreviation == division.Abbreviation
+            if (dbContext.Divisions.FirstOrDefault(e => e.Abbreviation == division.Abbreviation
                                                         || e.Name == division.Name
                                                         || e.Number == division.Number) != null)
             {
                 throw new ArgumentException("Data already in use.", nameof(division));
             }
 
-            _dbContext.Divisions.Add(division);
-            _dbContext.SaveChanges();
+            dbContext.Divisions.Add(division);
+            dbContext.SaveChanges();
         }
 
         public void Remove(Guid id)
         {
-            var item = _dbContext.Divisions.FirstOrDefault(e => e.Id == id)
+            var item = dbContext.Divisions.FirstOrDefault(e => e.Id == id)
                         ?? throw new InvalidOperationException("Interaction element not found.");
 
-            _dbContext.Divisions.Remove(item);
-            _dbContext.SaveChanges();
+            dbContext.Divisions.Remove(item);
+            dbContext.SaveChanges();
         }
 
         public Division? GetDivision(Guid id)
-            => _dbContext.Divisions.AsNoTracking().FirstOrDefault(e => e.Id == id);
+            => dbContext.Divisions.AsNoTracking().FirstOrDefault(e => e.Id == id);
 
         public Division? GetDivision(int number)
-            => _dbContext.Divisions.AsNoTracking().FirstOrDefault(e => e.Number == number);
+            => dbContext.Divisions.AsNoTracking().FirstOrDefault(e => e.Number == number);
     }
 }

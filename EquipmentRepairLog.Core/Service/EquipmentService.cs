@@ -53,7 +53,7 @@ namespace EquipmentRepairLog.Core.Service
             AddMissingEquipmentDocuments(addKKSEquipments);
         }
 
-        public void AddMissingEquipmentDocuments(List<KKSEquipment> kksEquipments)
+        private void AddMissingEquipmentDocuments(List<KKSEquipment> kksEquipments)
         {
             var transaction = dbContext.Database.BeginTransaction();
 

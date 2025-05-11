@@ -30,10 +30,19 @@ namespace EquipmentRepairLog.Core.Data.User
         public User(string username, string passwordHash, UserRole userRole)
             : this(username, passwordHash) => UserRole = userRole;
 
+        /// <summary>
+        /// Логин пользователя
+        /// </summary>
         public string Username { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Хеш пароля
+        /// </summary>
         public string PasswordHash { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Роль пользователя в прилажении
+        /// </summary>
         public UserRole UserRole { get; set; } = UserRole.Viewer;
 
         private string GetPaswordHash(string password)

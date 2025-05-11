@@ -10,7 +10,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(documents);
 
-            if (!DocumentsValidationDataDocumentTypeAndNumber(documents))
+            if (!DocValidDataDocTypeAndNumber(documents))
             {
                 throw new ArgumentException("Data already in use.", nameof(documents));
             }
@@ -28,7 +28,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            if (!DocValidDataDocumentTypeAndNumber(document))
+            if (!DocValidDataDocTypeAndNumber(document))
             {
                 throw new ArgumentException("Data already in use.", nameof(document));
             }
@@ -46,7 +46,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            if (!DocValidDataDocumentTypeAndNumber(document))
+            if (!DocValidDataDocTypeAndNumber(document))
             {
                 throw new ArgumentException("Data already in use.", nameof(document));
             }
@@ -100,10 +100,10 @@ namespace EquipmentRepairLog.Core.Service
         public Document? GetDocument(string registrationNumber)
             => dbContext.Documents.AsNoTracking().FirstOrDefault(e => e.RegistrationNumber == registrationNumber);
 
-        public bool DocumentsValidationDataDocumentTypeAndNumber(List<Document> documents)
-            => documents.All(DocValidDataDocumentTypeAndNumber);
+        private bool DocValidDataDocTypeAndNumber(List<Document> documents)
+            => documents.All(DocValidDataDocTypeAndNumber);
 
-        public bool DocValidDataDocumentTypeAndNumber(Document document)
+        private bool DocValidDataDocTypeAndNumber(Document document)
             => dbContext.Documents.FirstOrDefault(e => (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType)
                                                            || e.RegistrationNumber == document.RegistrationNumber) == null;
     }
