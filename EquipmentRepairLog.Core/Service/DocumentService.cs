@@ -52,7 +52,7 @@ namespace EquipmentRepairLog.Core.Service
             }
 
             var docByRegistrationNumber = dbContext.Documents.Include(e => e.ExecuteRepairDocuments).FirstOrDefault(e => e.RegistrationNumber == registrationNumberDoc)
-                                                   ?? throw new ArgumentException("Registration number not found.", nameof(registrationNumberDoc));
+                                                   ?? throw new ArgumentException($"Registration number {registrationNumberDoc} not found.", nameof(registrationNumberDoc));
 
             var executeRepairDocInRegistrDoc = docByRegistrationNumber?.ExecuteRepairDocuments?.FirstOrDefault()
                                                                       ?? throw new ArgumentException("Empty Execute Repair Document.");

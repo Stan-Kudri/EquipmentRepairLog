@@ -1,10 +1,12 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Exceptions.AppException;
 using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class ServiceDivision(AppDbContext dbContext)
+    public class DivisionService(AppDbContext dbContext)
     {
         public void Add(Division division)
         {
@@ -14,17 +16,19 @@ namespace EquipmentRepairLog.Core.Service
                                                         || e.Name == division.Name
                                                         || e.Number == division.Number) != null)
             {
-                throw new ArgumentException("Data already in use.", nameof(division));
+                throw new DataTransferException($"Division \"{division.Name}\" have already been add to the app (DB).");
             }
 
-            dbContext.Divisions.Add(division);
+            var divisionValidation = new DivisionValidation(division);
+
+            dbContext.Divisions.Add(divisionValidation.Value);
             dbContext.SaveChanges();
         }
 
         public void Remove(Guid id)
         {
             var item = dbContext.Divisions.FirstOrDefault(e => e.Id == id)
-                        ?? throw new InvalidOperationException("Interaction element not found.");
+                        ?? throw new DataTransferException($"The ID for the division with \"{id}\" is already taken.");
 
             dbContext.Divisions.Remove(item);
             dbContext.SaveChanges();

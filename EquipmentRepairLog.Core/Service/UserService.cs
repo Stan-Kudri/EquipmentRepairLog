@@ -12,7 +12,7 @@ namespace EquipmentRepairLog.Core.Service
 
             if (dbContext.Users.Any(e => e.Username == user.Username))
             {
-                throw new ArgumentException("This username exists.");
+                throw new ArgumentException($"This username {user.Username} exists.");
             }
 
             dbContext.Users.Add(user);

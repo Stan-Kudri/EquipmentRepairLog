@@ -20,6 +20,7 @@ namespace EquipmentRepairLog.Core.Extension
             {
                 if (!regexKKS.IsMatch(item))
                 {
+                    result.Add(item);
                     return false;
                 }
             }

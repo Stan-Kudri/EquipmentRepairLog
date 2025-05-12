@@ -1,5 +1,6 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Exceptions.AppException;
 using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
@@ -14,7 +15,7 @@ namespace EquipmentRepairLog.Core.Service
                                                         || e.Name == documentType.Name
                                                         || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber) != null)
             {
-                throw new ArgumentException("Data already in use.", nameof(documentType));
+                throw new DataTransferException($"Document Type \"{documentType.Name}\" have already been add to the app (DB).");
             }
 
             dbContext.DocumentTypes.Add(documentType);
@@ -24,7 +25,7 @@ namespace EquipmentRepairLog.Core.Service
         public void Remove(Guid id)
         {
             var item = dbContext.DocumentTypes.FirstOrDefault(e => e.Id == id)
-                        ?? throw new InvalidOperationException("Interaction element not found.");
+                        ?? throw new DataTransferException($"The ID for the document type  with \"{id}\" is already taken.");
 
             dbContext.DocumentTypes.Remove(item);
             dbContext.SaveChanges();

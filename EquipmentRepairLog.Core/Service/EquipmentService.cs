@@ -1,6 +1,7 @@
 ﻿using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
+using EquipmentRepairLog.Core.Exceptions.AppException;
 using EquipmentRepairLog.Core.Extension;
 using System.Data.Entity;
 
@@ -16,7 +17,7 @@ namespace EquipmentRepairLog.Core.Service
 
             if (!kKSEquipment.KKS.KKSValidation(out var result))
             {
-                throw new EquipmentRepairLogException("Error in KKS typing by user.");
+                throw new EquipmentRepairLogException($"Error in kks naming {result[0]}.");
             }
             else
             {
@@ -39,7 +40,7 @@ namespace EquipmentRepairLog.Core.Service
             {
                 if (!item.KKS.KKSValidation(out var result))
                 {
-                    throw new EquipmentRepairLogException("Error in KKS typing by user.");
+                    throw new EquipmentRepairLogException($"Error in kks naming {result[0]}.");
                 }
                 else
                 {
@@ -65,7 +66,7 @@ namespace EquipmentRepairLog.Core.Service
                 var listKKS = kksEquipments.Select(e => e.KKS).Distinct().ToList();
 
                 //Поиск и добавление отсутствующих видов оборудовния
-                var containsDBEquipment = dbContext.Equipments.Where(e => equipments.Contains(e.Name)).Select(e => e.Name).ToList();
+                var containsDBEquipment = dbContext.Equipments.AsNoTracking().Where(e => equipments.Contains(e.Name)).Select(e => e.Name).ToList();
                 var addEquipment = kksEquipments.Where(e => !containsDBEquipment.Contains(e.Equipment.Name)).Select(e => e.Equipment);
                 if (addEquipment.Any())
                 {
@@ -74,7 +75,7 @@ namespace EquipmentRepairLog.Core.Service
                 }
 
                 //Поиск и добавление отсутствующих типов/марок оборудовния
-                var containsDBEquipmentType = dbContext.EquipmentTypes.Where(e => equipmentsType.Contains(e.Name)).Select(e => e.Name).ToList();
+                var containsDBEquipmentType = dbContext.EquipmentTypes.AsNoTracking().Where(e => equipmentsType.Contains(e.Name)).Select(e => e.Name).ToList();
                 var missingEquipmentType = kksEquipments.Where(e => !containsDBEquipmentType.Contains(e.EquipmentType.Name)).Select(e => e.EquipmentType);
                 if (missingEquipmentType.Any())
                 {
@@ -87,22 +88,26 @@ namespace EquipmentRepairLog.Core.Service
                 }
 
                 //Добавление полей Id в экземпляр класса Document.
-                var equipmentsTypeId = dbContext.EquipmentTypes.Where(e => equipmentsType.Contains(e.Name)).Select(e => new { EquipmentType = e }).ToList();
-                var equipmentsId = dbContext.Equipments.Where(e => equipments.Contains(e.Name)).Select(e => new { Equipment = e }).ToList();
+                var equipmentsTypeId = dbContext.EquipmentTypes.AsNoTracking().Where(e => equipmentsType.Contains(e.Name));
+                var equipmentsId = dbContext.Equipments.AsNoTracking().Where(e => equipments.Contains(e.Name));
 
                 //Добавление Id в поля класса.
                 foreach (var item in kksEquipments)
                 {
-                    item.Equipment = equipmentsId.First(e => e.Equipment.Name == item.Equipment.Name).Equipment;
+                    item.Equipment = equipmentsId.First(e => e.Name == item.Equipment.Name);
                     item.EquipmentId = item.Equipment.Id;
-                    item.EquipmentType = equipmentsTypeId.First(e => e.EquipmentType.Name == item.EquipmentType.Name).EquipmentType;
+                    item.EquipmentType = equipmentsTypeId.First(e => e.Name == item.EquipmentType.Name);
                     item.EquipmentTypeId = item.EquipmentType.Id;
                 }
 
+                //Поиск дублирующих KKS из переданных и БД
                 var equipmentsDB = dbContext.KKSEquipments.AsNoTracking().Where(e => listKKS.Contains(e.KKS)).Select(e => new { e.EquipmentId, e.EquipmentTypeId, e.KKS }).ToList();
                 var addNewKKSEquipments = kksEquipments.ExceptBy(equipmentsDB.Select(e => e.KKS), e => e.KKS).ToList();
+
+                //Добавление новых KKS со всеми данными в БД
                 dbContext.KKSEquipments.AddRange(addNewKKSEquipments);
 
+                //Поиск отличий полей от дублирующих KKS и добавление их в БД, если есть отличия 
                 foreach (var addItem in kksEquipments)
                 {
                     for (int i = 0; i < equipmentsDB.Count; i++)
@@ -117,12 +122,12 @@ namespace EquipmentRepairLog.Core.Service
                 }
 
                 dbContext.SaveChanges();
-
                 transaction.Commit();
             }
             catch
             {
-                throw new ArgumentException("Error in save data.");
+                transaction.Rollback();
+                throw new TransactionAppException("Error in save data.");
             }
 
 
