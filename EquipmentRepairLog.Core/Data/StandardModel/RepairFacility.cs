@@ -7,17 +7,17 @@ namespace EquipmentRepairLog.Core.Data.StandardModel
         /// <summary>
         /// Наименование принадлежности к объекту (ЭБ 1 / ЭБ 2 / ОСО)
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public required string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Аббревиатура объекта
         /// </summary>
-        public string Abbreviation { get; set; } = string.Empty;
+        public required string Abbreviation { get; set; } = string.Empty;
 
         /// <summary>
         /// Номер объекта
         /// </summary>
-        public byte Number { get; set; }
+        public required byte Number { get; set; }
 
         /// <summary>
         /// Список документов по объекту

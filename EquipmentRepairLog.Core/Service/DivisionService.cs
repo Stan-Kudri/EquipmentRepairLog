@@ -6,22 +6,21 @@ using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class DivisionService(AppDbContext dbContext)
+    public class DivisionService(AppDbContext dbContext, DivisionFactory divisionFactory)
     {
         public void Add(Division division)
         {
             ArgumentNullException.ThrowIfNull(division);
 
-            if (dbContext.Divisions.FirstOrDefault(e => e.Abbreviation == division.Abbreviation
-                                                        || e.Name == division.Name
-                                                        || e.Number == division.Number) != null)
+            if (dbContext.Divisions.Any(e => e.Abbreviation == division.Abbreviation
+                                             || e.Name == division.Name
+                                             || e.Number == division.Number))
             {
                 throw new DataTransferException($"Division \"{division.Name}\" have already been add to the app (DB).");
             }
 
-            var divisionValidation = new DivisionValidation(division);
-
-            dbContext.Divisions.Add(divisionValidation.Value);
+            var divisionNormalize = divisionFactory.Create(division.Name, division.Abbreviation, division.Number);
+            dbContext.Divisions.Add(divisionNormalize);
             dbContext.SaveChanges();
         }
 

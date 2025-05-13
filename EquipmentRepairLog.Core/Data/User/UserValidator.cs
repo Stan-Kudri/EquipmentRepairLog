@@ -4,6 +4,8 @@
     {
         public const int MinLengthUsername = 3;
 
+        public const int MinLengthPass = 6;
+
         public bool ValidFormatUsername(string username, out string message)
         {
             message = string.Empty;
@@ -22,8 +24,6 @@
 
             return true;
         }
-
-        public const int MinLengthPass = 6;
 
         public bool ValidFormatPassword(string password, out string message)
         {

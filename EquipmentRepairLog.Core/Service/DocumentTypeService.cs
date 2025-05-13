@@ -1,24 +1,26 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions.AppException;
 using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class DocumentTypeService(AppDbContext dbContext)
+    public class DocumentTypeService(AppDbContext dbContext, DocumentTypeFactory documentTypeFactory)
     {
         public void Add(DocumentType documentType)
         {
             ArgumentNullException.ThrowIfNull(documentType);
 
-            if (dbContext.DocumentTypes.FirstOrDefault(e => e.Abbreviation == documentType.Abbreviation
-                                                        || e.Name == documentType.Name
-                                                        || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber) != null)
+            if (dbContext.DocumentTypes.Any(e => e.Abbreviation == documentType.Abbreviation
+                                                 || e.Name == documentType.Name
+                                                 || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber))
             {
                 throw new DataTransferException($"Document Type \"{documentType.Name}\" have already been add to the app (DB).");
             }
 
-            dbContext.DocumentTypes.Add(documentType);
+            var documentNormalize = documentTypeFactory.Create(documentType.Name, documentType.Abbreviation, documentType.ExecutiveRepairDocNumber, documentType.IsOnlyTypeDocInRepairLog);
+            dbContext.DocumentTypes.Add(documentNormalize);
             dbContext.SaveChanges();
         }
 

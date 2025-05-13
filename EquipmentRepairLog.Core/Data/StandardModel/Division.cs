@@ -7,17 +7,17 @@ namespace EquipmentRepairLog.Core.Data.StandardModel
         /// <summary>
         /// Наименование цеха владельца оборудования
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public required string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Номер цеха/отдела
         /// </summary>
-        public int Number { get; set; }
+        public required byte Number { get; set; }
 
         /// <summary>
         /// Аббревиатура владельца оборудования
         /// </summary>
-        public string Abbreviation { get; set; } = string.Empty;
+        public required string Abbreviation { get; set; } = string.Empty;
 
         /// <summary>
         /// Список документов для данного цеха/отдела

@@ -7,12 +7,12 @@ namespace EquipmentRepairLog.Core.Data.StandardModel
         /// <summary>
         /// Название организации/цеха исполнителя работ
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public required string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Аббревиатура исполнителя работ
         /// </summary>
-        public string Abbreviation { get; set; } = string.Empty;
+        public required string Abbreviation { get; set; } = string.Empty;
 
         /// <summary>
         /// Список документов по исполнителю работ

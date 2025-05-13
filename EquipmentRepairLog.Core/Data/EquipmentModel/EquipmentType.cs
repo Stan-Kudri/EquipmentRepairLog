@@ -7,16 +7,16 @@
         /// </summary>
         public required string Name { get; set; }
 
-        public Guid EquipmentId { get; set; }
+        public required Guid EquipmentId { get; set; }
 
         /// <summary>
         /// Наименование оборудования
         /// </summary>
         public Equipment? Equipment { get; set; }
 
-        public override bool Equals(object obj) => Equals(obj as EquipmentType);
-
         public bool Equals(EquipmentType type)
             => type != null && type.Name == Name;
+
+        public override int GetHashCode() => HashCode.Combine(Name, Id, EquipmentId);
     }
 }

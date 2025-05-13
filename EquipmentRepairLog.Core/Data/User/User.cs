@@ -11,6 +11,9 @@ namespace EquipmentRepairLog.Core.Data.User
 
         public User(string username, string password)
         {
+            ArgumentException.ThrowIfNullOrEmpty(username);
+            ArgumentException.ThrowIfNullOrEmpty(password);
+
             var validator = new UserValidator();
 
             if (!validator.ValidFormatPassword(password, out var messageValidPass))
@@ -33,12 +36,12 @@ namespace EquipmentRepairLog.Core.Data.User
         /// <summary>
         /// Логин пользователя
         /// </summary>
-        public string Username { get; set; } = string.Empty;
+        public required string Username { get; set; } = string.Empty;
 
         /// <summary>
         /// Хеш пароля
         /// </summary>
-        public string PasswordHash { get; set; } = string.Empty;
+        public required string PasswordHash { get; set; } = string.Empty;
 
         /// <summary>
         /// Роль пользователя в прилажении

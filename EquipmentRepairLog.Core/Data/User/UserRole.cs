@@ -7,17 +7,17 @@ namespace EquipmentRepairLog.Core.Data.User
         /// <summary>
         /// Администратор
         /// </summary>
-        public static UserRole Admin = new UserRole(Role.Admin, 0);
+        public static UserRole Admin = new(Role.Admin, 0);
 
         /// <summary>
         /// Просмотрщик - пользователь может просматривать записи 
         /// </summary>
-        public static UserRole Viewer = new UserRole(Role.UserViewer, 1);
+        public static UserRole Viewer = new(Role.UserViewer, 1);
 
         /// <summary>
         /// Пользователь - просматривает и изменяет/добавляет/удаляет записи
         /// </summary>
-        public static UserRole Editor = new UserRole(Role.UserEditor, 2);
+        public static UserRole Editor = new(Role.UserEditor, 2);
 
         public UserRole(string name, int value)
             : base(name, value)
