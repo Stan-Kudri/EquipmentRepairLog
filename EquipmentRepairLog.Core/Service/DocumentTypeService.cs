@@ -1,7 +1,7 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
-using EquipmentRepairLog.Core.Exceptions.AppException;
+using EquipmentRepairLog.Core.Exceptions;
 using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
@@ -16,7 +16,7 @@ namespace EquipmentRepairLog.Core.Service
                                                  || e.Name == documentType.Name
                                                  || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber))
             {
-                throw new DataTransferException($"Document Type \"{documentType.Name}\" have already been add to the app (DB).");
+                throw new BusinessLogicException($"Document Type \"{documentType.Name}\" have already been add to the app (DB).");
             }
 
             var documentNormalize = documentTypeFactory.Create(documentType.Name, documentType.Abbreviation, documentType.ExecutiveRepairDocNumber, documentType.IsOnlyTypeDocInRepairLog);
@@ -27,7 +27,7 @@ namespace EquipmentRepairLog.Core.Service
         public void Remove(Guid id)
         {
             var item = dbContext.DocumentTypes.FirstOrDefault(e => e.Id == id)
-                        ?? throw new DataTransferException($"The ID for the document type  with \"{id}\" is already taken.");
+                        ?? throw new BusinessLogicException($"The ID for the document type  with \"{id}\" is already taken.");
 
             dbContext.DocumentTypes.Remove(item);
             dbContext.SaveChanges();

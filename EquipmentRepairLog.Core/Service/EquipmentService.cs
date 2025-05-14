@@ -3,50 +3,54 @@ using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Exceptions.AppException;
-using EquipmentRepairLog.Core.Extension;
 using System.Data.Entity;
+using System.Text.RegularExpressions;
 
 namespace EquipmentRepairLog.Core.Service
 {
     public class EquipmentService(AppDbContext dbContext)
     {
-        public void AddEquipment(KKSEquipment kKSEquipment)
+        private static Regex regexKKS = new Regex(@"^[0-9]{2}[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{3}$");
+
+        public void AddEquipment(KKSEquipment kksEquipment)
         {
-            ArgumentNullException.ThrowIfNull(kKSEquipment);
-            ArgumentNullException.ThrowIfNull(kKSEquipment.Equipment);
-            ArgumentNullException.ThrowIfNull(kKSEquipment.EquipmentType);
+            ArgumentNullException.ThrowIfNull(kksEquipment);
+            ArgumentNullException.ThrowIfNull(kksEquipment.Equipment);
+            ArgumentNullException.ThrowIfNull(kksEquipment.EquipmentType);
+            ArgumentException.ThrowIfNullOrEmpty(kksEquipment.KKS);
 
             var addKKSEquipments = new List<KKSEquipmentModel>();
 
-            if (!kKSEquipment.KKS.KKSValidation(out var result))
+            if (!KKSValidation(kksEquipment.KKS, out var result))
             {
-                throw new EquipmentRepairLogException($"Error in kks naming {result[0]}.");
+                throw new BusinessLogicException($"Error in kks naming {string.Join(';', result)}.");
             }
             else
             {
                 foreach (var addItem in result)
                 {
-                    addKKSEquipments.Add(new KKSEquipmentModel() { Equipment = kKSEquipment.Equipment, EquipmentType = kKSEquipment.EquipmentType, KKS = addItem });
+                    addKKSEquipments.Add(new KKSEquipmentModel() { Equipment = kksEquipment.Equipment, EquipmentType = kksEquipment.EquipmentType, KKS = addItem });
                 }
             }
 
             AddMissingEquipmentDocuments(addKKSEquipments);
         }
 
-        public void AddRangeEquipment(List<KKSEquipment> kKSEquipments)
+        public void AddRangeEquipment(List<KKSEquipment> kksEquipments)
         {
-            ArgumentNullException.ThrowIfNull(kKSEquipments);
+            ArgumentNullException.ThrowIfNull(kksEquipments);
 
             var addKKSEquipments = new List<KKSEquipmentModel>();
 
-            foreach (var item in kKSEquipments)
+            foreach (var item in kksEquipments)
             {
                 ArgumentNullException.ThrowIfNull(item.Equipment);
                 ArgumentNullException.ThrowIfNull(item.EquipmentType);
+                ArgumentException.ThrowIfNullOrEmpty(item.KKS);
 
-                if (!item.KKS.KKSValidation(out var result))
+                if (!KKSValidation(item.KKS, out var result))
                 {
-                    throw new EquipmentRepairLogException($"Error in kks naming {result[0]}.");
+                    throw new BusinessLogicException($"Error in kks naming {string.Join(';', result)}.");
                 }
                 else
                 {
@@ -140,11 +144,31 @@ namespace EquipmentRepairLog.Core.Service
                 dbContext.SaveChanges();
                 transaction.Commit();
             }
-            catch
+            catch (Exception e)
             {
                 transaction.Rollback();
-                throw new TransactionAppException("Error in save data.");
+                throw e.InnerException != null
+                      ? new TransactionAppException("Error in save data.", e.InnerException)
+                      : new TransactionAppException("Error in save data.");
             }
+        }
+
+        private bool KKSValidation(string str, out List<string> result)
+        {
+            result = new List<string>();
+            var arrayKKS = str.Split([',', ' ', '-', '.'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            foreach (var item in arrayKKS)
+            {
+                if (!regexKKS.IsMatch(item))
+                {
+                    result.Add(item);
+                    return false;
+                }
+            }
+
+            result = arrayKKS.ToList();
+            return true;
         }
     }
 }

@@ -1,8 +1,7 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
-using EquipmentRepairLog.Core.Exceptions.AppException;
-using System.Data.Entity;
+using EquipmentRepairLog.Core.Exceptions;
 
 namespace EquipmentRepairLog.Core.Service
 {
@@ -16,7 +15,7 @@ namespace EquipmentRepairLog.Core.Service
                                              || e.Name == division.Name
                                              || e.Number == division.Number))
             {
-                throw new DataTransferException($"Division \"{division.Name}\" have already been add to the app (DB).");
+                throw new BusinessLogicException($"Division \"{division.Name}\" have already been add to the app (DB).");
             }
 
             var divisionNormalize = divisionFactory.Create(division.Name, division.Abbreviation, division.Number);
@@ -27,16 +26,10 @@ namespace EquipmentRepairLog.Core.Service
         public void Remove(Guid id)
         {
             var item = dbContext.Divisions.FirstOrDefault(e => e.Id == id)
-                        ?? throw new DataTransferException($"The ID for the division with \"{id}\" is already taken.");
+                        ?? throw new BusinessLogicException($"The ID for the division with \"{id}\" is already taken.");
 
             dbContext.Divisions.Remove(item);
             dbContext.SaveChanges();
         }
-
-        public Division? GetDivision(Guid id)
-            => dbContext.Divisions.AsNoTracking().FirstOrDefault(e => e.Id == id);
-
-        public Division? GetDivision(int number)
-            => dbContext.Divisions.AsNoTracking().FirstOrDefault(e => e.Number == number);
     }
 }

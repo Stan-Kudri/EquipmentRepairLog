@@ -1,7 +1,7 @@
 ﻿using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
-using EquipmentRepairLog.Core.Data.User;
+using EquipmentRepairLog.Core.Data.Users;
 using EquipmentRepairLog.Core.DBContext.Configuration;
 using Microsoft.EntityFrameworkCore;
 

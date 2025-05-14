@@ -29,5 +29,10 @@ namespace EquipmentRepairLog.Core.Data.EquipmentModel
         /// Список документов для данного KKS
         /// </summary>
         public List<Document>? KKSEquipmentDocuments { get; set; } = new List<Document>();
+
+        public bool Equals(KKSEquipment? kksEquipment)
+            => kksEquipment is not null && kksEquipment.KKS == KKS && kksEquipment.EquipmentId == EquipmentId && kksEquipment.EquipmentTypeId == EquipmentTypeId;
+
+        public override int GetHashCode() => HashCode.Combine(KKS, EquipmentId, EquipmentTypeId);
     }
 }

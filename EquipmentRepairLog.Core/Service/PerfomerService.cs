@@ -1,7 +1,7 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
-using EquipmentRepairLog.Core.Exceptions.AppException;
+using EquipmentRepairLog.Core.Exceptions;
 
 namespace EquipmentRepairLog.Core.Service
 {
@@ -13,7 +13,7 @@ namespace EquipmentRepairLog.Core.Service
 
             if (dbContext.Perfomers.Any(e => e.Abbreviation == perfomer.Abbreviation || e.Name == perfomer.Name))
             {
-                throw new DataTransferException($"Performers of the works \"{perfomer.Name}\" have already been add to the app (DB).");
+                throw new BusinessLogicException($"Performers of the works \"{perfomer.Name}\" have already been add to the app (DB).");
             }
 
             var perfomerNormalize = perfomerFactory.Create(perfomer.Name, perfomer.Abbreviation);
@@ -24,16 +24,10 @@ namespace EquipmentRepairLog.Core.Service
         public void Remove(Guid id)
         {
             var item = dbContext.Perfomers.FirstOrDefault(e => e.Id == id)
-                        ?? throw new DataTransferException($"The ID for the perfomer with \"{id}\" is already taken.");
+                        ?? throw new BusinessLogicException($"The ID for the perfomer with \"{id}\" is already taken.");
 
             dbContext.Perfomers.Remove(item);
             dbContext.SaveChanges();
         }
-
-        public Perfomer? GetPerfomer(Guid id)
-            => dbContext.Perfomers.FirstOrDefault(e => e.Id == id);
-
-        public Perfomer? GetPerfomer(string abbreviation)
-            => dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == abbreviation);
     }
 }
