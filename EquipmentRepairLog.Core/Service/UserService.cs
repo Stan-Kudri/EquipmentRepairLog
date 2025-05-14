@@ -1,19 +1,34 @@
-﻿using EquipmentRepairLog.Core.Data.User;
+﻿using EquipmentRepairLog.Core.Data.Users;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class UserService(AppDbContext dbContext)
+    public class UserService(AppDbContext dbContext, UserValidator userValidator)
     {
-        public void Add(User user)
+        public void Add(string username, string password)
         {
-            ArgumentNullException.ThrowIfNull(user);
+            ArgumentNullException.ThrowIfNull(username);
+            ArgumentNullException.ThrowIfNull(password);
 
-            if (dbContext.Users.Any(e => e.Username == user.Username))
+            if (!userValidator.ValidFormatUsername(username, out var messageValidUsername))
             {
-                throw new ArgumentException($"This username {user.Username} exists.");
+                throw new EquipmentRepairLogException(messageValidUsername);
             }
+
+            if (!userValidator.ValidFormatPassword(password, out var messageValidPass))
+            {
+                throw new EquipmentRepairLogException(messageValidPass);
+            }
+
+            if (dbContext.Users.Any(e => e.Username == username))
+            {
+                throw new EquipmentRepairLogException($"This username {username} exists.");
+            }
+
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+            var user = new User(username, passwordHash);
 
             dbContext.Users.Add(user);
             dbContext.SaveChanges();

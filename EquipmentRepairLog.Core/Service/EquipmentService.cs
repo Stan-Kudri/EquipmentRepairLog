@@ -140,10 +140,11 @@ namespace EquipmentRepairLog.Core.Service
                 dbContext.SaveChanges();
                 transaction.Commit();
             }
-            catch
+            catch (Exception e)
             {
                 transaction.Rollback();
-                throw new TransactionAppException("Error in save data.");
+                if (e.InnerException != null)
+                    throw new TransactionAppException(e.InnerException.Message);
             }
         }
     }

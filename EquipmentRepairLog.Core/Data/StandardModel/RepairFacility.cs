@@ -23,5 +23,10 @@ namespace EquipmentRepairLog.Core.Data.StandardModel
         /// Список документов по объекту
         /// </summary>
         public List<Document>? Documents { get; set; } = new List<Document>();
+
+        public bool Equals(RepairFacility? repairFacility)
+            => repairFacility is not null && repairFacility.Name == Name && repairFacility.Abbreviation == Abbreviation && repairFacility.Number == Number;
+
+        public override int GetHashCode() => HashCode.Combine(Name, Abbreviation, Number);
     }
 }

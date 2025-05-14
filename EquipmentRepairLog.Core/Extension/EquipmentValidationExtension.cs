@@ -28,18 +28,5 @@ namespace EquipmentRepairLog.Core.Extension
             result = arrayKKS.ToList();
             return true;
         }
-
-        public static bool ValidateEquipment(this string str, out string type)
-        {
-            type = string.Empty;
-
-            if (string.IsNullOrEmpty(str))
-            {
-                return false;
-            }
-
-            type = str.TrimEnd('.', ' ', ',', '-', '_').TrimStart('.', ' ', ',', '-', '_');
-            return true;
-        }
     }
 }

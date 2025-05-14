@@ -25,15 +25,18 @@ namespace EquipmentRepairLog.Core.Data.ValidationData
 
             if (number > MaxNumberDivision || number <= MinNumberDivision)
             {
+                throw new EquipmentRepairLogException(number, typeof(Division), MinNumberDivision, MaxNumberDivision);
                 throw new EquipmentRepairLogException($"Number division {number} is out of range [{MinNumberDivision}...{MaxNumberDivision}].");
             }
             if (name.Length > MaxLengthName || name.Length <= MinLengthName)
             {
-                throw new EquipmentRepairLogException($"Name division {name} is out of range [{MaxLengthName}...{MinLengthName}].");
+                throw new EquipmentRepairLogException(name, typeof(Division), MinLengthName, MaxLengthName);
+                throw new EquipmentRepairLogException($"Name division {name} is out of range [{MinLengthName}...{MaxLengthName}].");
             }
             if (abbreviation.Length > MaxLengthAbbreviation || abbreviation.Length <= MinLengthAbbreviation)
             {
-                throw new EquipmentRepairLogException($"Abbreviation division {abbreviation} is out of range [{MaxLengthAbbreviation}...{MinLengthAbbreviation}].");
+                throw new EquipmentRepairLogException(abbreviation, typeof(Division), MinLengthAbbreviation, MaxLengthAbbreviation);
+                throw new EquipmentRepairLogException($"Abbreviation division {abbreviation} is out of range [{MinLengthAbbreviation}...{MaxLengthAbbreviation}].");
             }
 
             return new Division() { Name = name, Abbreviation = abbreviation, Number = number };

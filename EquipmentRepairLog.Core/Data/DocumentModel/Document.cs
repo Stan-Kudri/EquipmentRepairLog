@@ -72,5 +72,10 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// </summary>
         public List<ExecuteRepairDocument>? ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
 
+        public bool Equals(Document? document)
+            => document is not null && document.RegistrationNumber == RegistrationNumber && document.OrdinalNumber == OrdinalNumber && document.DocumentTypeId == DocumentTypeId;
+
+        public override int GetHashCode() => HashCode.Combine(RegistrationNumber, OrdinalNumber, DocumentTypeId);
+
     }
 }

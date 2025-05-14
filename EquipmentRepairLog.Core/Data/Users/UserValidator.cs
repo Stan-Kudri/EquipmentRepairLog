@@ -1,4 +1,4 @@
-﻿namespace EquipmentRepairLog.Core.Data.User
+﻿namespace EquipmentRepairLog.Core.Data.Users
 {
     public class UserValidator
     {

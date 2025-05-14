@@ -28,5 +28,10 @@ namespace EquipmentRepairLog.Core.Data.StandardModel
         /// Список документов для данного типа документа
         /// </summary>
         public List<Document>? Documents { get; set; } = new List<Document>();
+
+        public bool Equals(DocumentType? documentType)
+            => documentType is not null && documentType.Name == Name && documentType.Abbreviation == Abbreviation && documentType.ExecutiveRepairDocNumber == ExecutiveRepairDocNumber;
+
+        public override int GetHashCode() => HashCode.Combine(Name, Abbreviation, ExecutiveRepairDocNumber);
     }
 }

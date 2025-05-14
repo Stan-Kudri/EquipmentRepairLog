@@ -1,6 +1,8 @@
 ﻿using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.Users;
+using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Extension;
 using EquipmentRepairLog.Core.Service;
@@ -8,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 var db = new DbContextFactory().Create();
 var documentService = new DocumentService(db);
+
+var divisionExe = new DivisionFactory().Create("Отдел под", "ОППР", 0);
 
 var equipment = new Equipment() { Name = "Клапан запорный", Description = "Клапан новый" };
 db.Equipments.Add(equipment);
@@ -80,8 +84,9 @@ var docSecond = new Document()
 
 documentService.AddAllDocuments(new List<Document> { docFirst, docSecond });
 
-//var user = new User("Stan228337", "Qav228337");
-//db.Users.Add(user);
+var userService = new UserService(db, new UserValidator());
+
+userService.Add("Stan228337", "Qav228337");
 db.SaveChanges();
 
 db.ChangeTracker.Clear();
