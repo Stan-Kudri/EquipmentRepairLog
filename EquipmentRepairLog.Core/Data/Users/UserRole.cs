@@ -1,6 +1,6 @@
 ﻿using Ardalis.SmartEnum;
 
-namespace EquipmentRepairLog.Core.Data.User
+namespace EquipmentRepairLog.Core.Data.Users
 {
     public class UserRole : SmartEnum<UserRole>
     {

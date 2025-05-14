@@ -1,5 +1,7 @@
-﻿using EquipmentRepairLog.Core.Data.User;
+﻿
+using EquipmentRepairLog.Core.Data.Users;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
@@ -12,7 +14,7 @@ namespace EquipmentRepairLog.Core.Service
 
             if (dbContext.Users.Any(e => e.Username == user.Username))
             {
-                throw new ArgumentException($"This username {user.Username} exists.");
+                throw new EquipmentRepairLogException($"This username {user.Username} exists.");
             }
 
             dbContext.Users.Add(user);

@@ -14,7 +14,7 @@
         /// </summary>
         public Equipment? Equipment { get; set; }
 
-        public bool Equals(EquipmentType type)
+        public bool Equals(EquipmentType? type)
             => type != null && type.Name == Name;
 
         public override int GetHashCode() => HashCode.Combine(Name, Id, EquipmentId);
