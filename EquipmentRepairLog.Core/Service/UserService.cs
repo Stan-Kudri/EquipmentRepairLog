@@ -1,37 +1,30 @@
-﻿using EquipmentRepairLog.Core.Data.User;
+﻿
+using EquipmentRepairLog.Core.Data.Users;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class UserService
+    public class UserService(AppDbContext dbContext)
     {
-        private readonly AppDbContext _dbContext;
-
-        public UserService(AppDbContext appDbContext) => _dbContext = appDbContext;
-
         public void Add(User user)
         {
-            if (user == null)
+            ArgumentNullException.ThrowIfNull(user);
+
+            if (dbContext.Users.Any(e => e.Username == user.Username))
             {
-                throw new ArgumentException("The received parameters are not correct.");
+                throw new EquipmentRepairLogException($"This username {user.Username} exists.");
             }
 
-            if (_dbContext.Users.Any(e => e.Username == user.Username))
-            {
-                throw new ArgumentException("This username exists.");
-            }
-
-            _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
+            dbContext.Users.Add(user);
+            dbContext.SaveChanges();
         }
 
         public User? GetUser(string username, string passwordHash)
-            => _dbContext.Users.FirstOrDefault(e => e.Username == username && e.PasswordHash == passwordHash);
+            => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username && e.PasswordHash == passwordHash);
 
         public bool IsFreeUsername(string username)
-            => _dbContext.Users.FirstOrDefault(e => e.Username == username) == null;
-
-        public bool IsUserData(User user)
-            => _dbContext.Users.FirstOrDefault(e => e.Username == user.Username && e.PasswordHash == user.PasswordHash) != null;
+            => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username) == null;
     }
 }
