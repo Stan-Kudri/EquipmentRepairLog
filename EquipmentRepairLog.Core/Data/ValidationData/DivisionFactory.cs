@@ -10,13 +10,10 @@ namespace EquipmentRepairLog.Core.Data.ValidationData
 
         public Division Create(string name, string abbreviation, byte number)
         {
-            if (number is > MaxNumberDivision or <= MinNumberDivision)
-            {
-                throw BusinessLogicException.InvalidFormat<Division>(nameof(number), MinNumberDivision, MaxNumberDivision);
-            }
-            BaseFieldValidation(ref name, ref abbreviation);
+            BusinessLogicException.EnsureRange<Division>(number, nameof(number), MinNumberDivision, MaxNumberDivision);
+            var result = EnsureValid(name, abbreviation);
 
-            return new Division() { Name = name, Abbreviation = abbreviation, Number = number };
+            return new Division() { Name = result.Name, Abbreviation = result.Abbreviation, Number = number };
         }
     }
 }

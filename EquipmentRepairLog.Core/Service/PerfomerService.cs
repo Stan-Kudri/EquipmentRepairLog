@@ -2,6 +2,7 @@
 using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
+using EquipmentRepairLog.Core.Exceptions.AppException;
 
 namespace EquipmentRepairLog.Core.Service
 {
@@ -11,9 +12,18 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(perfomer);
 
-            if (dbContext.Perfomers.Any(e => e.Abbreviation == perfomer.Abbreviation || e.Name == perfomer.Name))
+            var existingPerfomer = dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == perfomer.Abbreviation || e.Name == perfomer.Name);
+
+            if (existingPerfomer != null)
             {
-                throw new BusinessLogicException($"Performers of the works \"{perfomer.Name}\" have already been add to the app (DB).");
+                if (existingPerfomer.Abbreviation == perfomer.Abbreviation)
+                {
+                    throw new BusinessLogicException($"Division \"{perfomer.Abbreviation}\" have already been add to the app (DB).");
+                }
+                if (existingPerfomer.Name == perfomer.Name)
+                {
+                    throw new BusinessLogicException($"Division \"{perfomer.Name}\" have already been add to the app (DB).");
+                }
             }
 
             var perfomerNormalize = perfomerFactory.Create(perfomer.Name, perfomer.Abbreviation);
@@ -24,7 +34,7 @@ namespace EquipmentRepairLog.Core.Service
         public void Remove(Guid id)
         {
             var item = dbContext.Perfomers.FirstOrDefault(e => e.Id == id)
-                        ?? throw new BusinessLogicException($"The ID for the perfomer with \"{id}\" is already taken.");
+                        ?? throw new NotFoundException($"The ID for the perfomer with \"{id}\" is already taken.");
 
             dbContext.Perfomers.Remove(item);
             dbContext.SaveChanges();

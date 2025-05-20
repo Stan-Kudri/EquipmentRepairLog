@@ -2,6 +2,7 @@
 using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
+using EquipmentRepairLog.Core.Exceptions.AppException;
 using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
@@ -12,11 +13,24 @@ namespace EquipmentRepairLog.Core.Service
         {
             ArgumentNullException.ThrowIfNull(documentType);
 
-            if (dbContext.DocumentTypes.Any(e => e.Abbreviation == documentType.Abbreviation
-                                                 || e.Name == documentType.Name
-                                                 || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber))
+            var existingDocumentType = dbContext.DocumentTypes.FirstOrDefault(e => e.Abbreviation == documentType.Abbreviation
+                                                                           || e.Name == documentType.Name
+                                                                           || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber);
+
+            if (existingDocumentType != null)
             {
-                throw new BusinessLogicException($"Document Type \"{documentType.Name}\" have already been add to the app (DB).");
+                if (existingDocumentType.Abbreviation == documentType.Abbreviation)
+                {
+                    throw new BusinessLogicException($"Division \"{documentType.Abbreviation}\" have already been add to the app (DB).");
+                }
+                if (existingDocumentType.Name == documentType.Name)
+                {
+                    throw new BusinessLogicException($"Division \"{documentType.Name}\" have already been add to the app (DB).");
+                }
+                if (existingDocumentType.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber)
+                {
+                    throw new BusinessLogicException($"Division \"{documentType.ExecutiveRepairDocNumber}\" have already been add to the app (DB).");
+                }
             }
 
             var documentNormalize = documentTypeFactory.Create(documentType.Name, documentType.Abbreviation, documentType.ExecutiveRepairDocNumber, documentType.IsOnlyTypeDocInRepairLog);
@@ -27,7 +41,7 @@ namespace EquipmentRepairLog.Core.Service
         public void Remove(Guid id)
         {
             var item = dbContext.DocumentTypes.FirstOrDefault(e => e.Id == id)
-                        ?? throw new BusinessLogicException($"The ID for the document type  with \"{id}\" is already taken.");
+                        ?? throw new NotFoundException($"The ID for the document type  with \"{id}\" is already taken.");
 
             dbContext.DocumentTypes.Remove(item);
             dbContext.SaveChanges();

@@ -97,17 +97,24 @@ namespace EquipmentRepairLog.Core.Service
                     dbContext.SaveChanges();
                 }
 
-                //Добавление полей Id в экземпляр класса Document.
-                var equipmentsTypeId = dbContext.EquipmentTypes.AsNoTracking().Where(e => equipmentsType.Contains(e.Name));
-                var equipmentsId = dbContext.Equipments.AsNoTracking().Where(e => equipments.Contains(e.Name));
+                //Создание словоря для EquipmentTypes и Equipments.
+                var equipmentsTypeDictionary = dbContext.EquipmentTypes.AsNoTracking().Where(e => equipmentsType.Contains(e.Name)).ToDictionary(e => e.Name);
+                var equipmentsDictionary = dbContext.Equipments.AsNoTracking().Where(e => equipments.Contains(e.Name)).ToDictionary(e => e.Name);
 
-                //Добавление Id в поля класса.
+                //Добавление Id и объектов (Equipment/EquipmentType) в поля класса.
                 foreach (var item in kksEquipmentsModel)
                 {
-                    item.Equipment = equipmentsId.First(e => e.Name == item.Equipment.Name);
-                    item.EquipmentId = item.Equipment.Id;
-                    item.EquipmentType = equipmentsTypeId.First(e => e.Name == item.EquipmentType.Name);
-                    item.EquipmentTypeId = item.EquipmentType.Id;
+                    if (equipmentsDictionary.TryGetValue(item.Equipment.Name, out var equipment))
+                    {
+                        item.Equipment = equipment;
+                        item.EquipmentId = equipment.Id;
+                    }
+
+                    if (equipmentsTypeDictionary.TryGetValue(item.EquipmentType.Name, out var equipmentType))
+                    {
+                        item.EquipmentType = equipmentType;
+                        item.EquipmentTypeId = equipmentType.Id;
+                    }
                 }
 
                 //Поиск дублирующих KKS из переданных и БД
@@ -133,8 +140,8 @@ namespace EquipmentRepairLog.Core.Service
                     for (int i = 0; i < equipmentsDB.Count; i++)
                     {
                         if (equipmentsDB[i].KKS == addItem.KKS
-                                                && (equipmentsDB[i].EquipmentId != addItem.EquipmentId
-                                                    || equipmentsDB[i].EquipmentTypeId != addItem.EquipmentTypeId))
+                            && (equipmentsDB[i].EquipmentId != addItem.EquipmentId
+                            || equipmentsDB[i].EquipmentTypeId != addItem.EquipmentTypeId))
                         {
                             dbContext.KKSEquipments.Add(addItem);
                         }
@@ -147,9 +154,7 @@ namespace EquipmentRepairLog.Core.Service
             catch (Exception e)
             {
                 transaction.Rollback();
-                throw e.InnerException != null
-                      ? new TransactionAppException("Error in save data.", e.InnerException)
-                      : new TransactionAppException("Error in save data.");
+                throw new TransactionAppException("Error in save data.", e);
             }
         }
 

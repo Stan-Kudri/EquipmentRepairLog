@@ -6,8 +6,8 @@ namespace EquipmentRepairLog.Core.Data.ValidationData
     {
         public Perfomer Create(string name, string abbreviation)
         {
-            BaseFieldValidation(ref name, ref abbreviation);
-            return new Perfomer() { Name = name, Abbreviation = abbreviation };
+            var result = EnsureValid(name, abbreviation);
+            return new Perfomer() { Name = result.Name, Abbreviation = result.Abbreviation };
         }
     }
 }

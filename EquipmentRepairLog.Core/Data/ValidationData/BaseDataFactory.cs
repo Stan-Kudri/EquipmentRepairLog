@@ -1,5 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.StandardModel;
-using EquipmentRepairLog.Core.Exceptions;
+﻿using EquipmentRepairLog.Core.Exceptions;
 using System.Text;
 
 namespace EquipmentRepairLog.Core.Data.ValidationData
@@ -13,7 +12,7 @@ namespace EquipmentRepairLog.Core.Data.ValidationData
         private const byte MaxLengthAbbreviation = 15;
         private const byte MinLengthAbbreviation = 2;
 
-        protected void BaseFieldValidation(ref string name, ref string abbreviation)
+        protected (string Name, string Abbreviation) EnsureValid(string name, string abbreviation)
         {
             ArgumentException.ThrowIfNullOrEmpty(name);
             ArgumentException.ThrowIfNullOrEmpty(abbreviation);
@@ -21,14 +20,10 @@ namespace EquipmentRepairLog.Core.Data.ValidationData
             name = NormalizeString(name);
             abbreviation = NormalizeString(abbreviation);
 
-            if (name.Length is > MaxLengthName or <= MinLengthName)
-            {
-                throw BusinessLogicException.InvalidFormat<DocumentType>(nameof(name), MinLengthName, MaxLengthName);
-            }
-            if (abbreviation.Length is > MaxLengthAbbreviation or <= MinLengthAbbreviation)
-            {
-                throw BusinessLogicException.InvalidFormat<DocumentType>(nameof(abbreviation), MinLengthAbbreviation, MaxLengthAbbreviation);
-            }
+            BusinessLogicException.EnsureLength<T>(name, nameof(name), MinLengthName, MaxLengthName);
+            BusinessLogicException.EnsureLength<T>(abbreviation, nameof(abbreviation), MinLengthAbbreviation, MaxLengthAbbreviation);
+
+            return (name, abbreviation);
         }
 
         protected string NormalizeString(string str)

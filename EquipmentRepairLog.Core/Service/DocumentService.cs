@@ -15,7 +15,7 @@ namespace EquipmentRepairLog.Core.Service
             if (!IsFreePropertyDocuments(documents))
             {
                 var invalidDocuments = documents.Where(document => dbContext.Documents.FirstOrDefault(e
-                                            => (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType)
+                                                => (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType)
                                                 || e.RegistrationNumber == document.RegistrationNumber) == null).Select(document => new { document.RegistrationNumber }).ToList();
                 throw new BusinessLogicException($"The document with registration number \"{string.Join(';', invalidDocuments.Select(e => e.RegistrationNumber))}\" is already taken.");
             }
@@ -34,9 +34,7 @@ namespace EquipmentRepairLog.Core.Service
             catch (Exception e)
             {
                 transaction.Rollback();
-                throw e.InnerException != null
-                      ? new TransactionAppException("Error in save data.", e.InnerException)
-                      : new TransactionAppException("Error in save data.");
+                throw new TransactionAppException("Error in save data.", e);
             }
         }
 
@@ -66,9 +64,7 @@ namespace EquipmentRepairLog.Core.Service
             catch (Exception e)
             {
                 transaction.Rollback();
-                throw e.InnerException != null
-                      ? new TransactionAppException("Error in save data.", e.InnerException)
-                      : new TransactionAppException("Error in save data.");
+                throw new TransactionAppException("Error in save data.", e);
             }
         }
 
@@ -99,9 +95,7 @@ namespace EquipmentRepairLog.Core.Service
             catch (Exception e)
             {
                 transaction.Rollback();
-                throw e.InnerException != null
-                      ? new TransactionAppException("Error in save data.", e.InnerException)
-                      : new TransactionAppException("Error in save data.");
+                throw new TransactionAppException("Error in save data.", e);
             }
         }
 
@@ -110,7 +104,7 @@ namespace EquipmentRepairLog.Core.Service
             var count = dbContext.Documents.Where(e => e.Id == id).ExecuteDelete();
             if (count == 0)
             {
-                throw new BusinessLogicException($"Not found document to delete by '{id}'.");
+                throw new NotFoundException($"Not found document to delete by '{id}'.");
             }
         }
 
@@ -119,12 +113,18 @@ namespace EquipmentRepairLog.Core.Service
             var docByRegistrationNumber = dbContext.Documents.Include(e => e.ExecuteRepairDocuments)
                                                              .Where(e => e.RegistrationNumber == registrationNumberDoc)
                                                              .Select(e => new { e.ExecuteRepairDocuments, })
-                                                             .First();
+                                                             .FirstOrDefault();
 
-            var executeRepairDocuments = docByRegistrationNumber.ExecuteRepairDocuments == null || docByRegistrationNumber.ExecuteRepairDocuments.Count != 0
-                                                ? docByRegistrationNumber.ExecuteRepairDocuments
-                                                : throw new BusinessLogicException($"Document with registration number {registrationNumberDoc} does not belong to any set of executive repair documentation.");
+            if (docByRegistrationNumber == null)
+            {
+                throw new NotFoundException($"Document with registration number \"{registrationNumberDoc}\" not found.");
+            }
+            if (docByRegistrationNumber.ExecuteRepairDocuments != null && docByRegistrationNumber.ExecuteRepairDocuments.Count == 0)
+            {
+                throw new BusinessLogicException($"Document with registration number {registrationNumberDoc} does not belong to any set of executive repair documentation.");
+            }
 
+            var executeRepairDocuments = docByRegistrationNumber.ExecuteRepairDocuments;
             ArgumentNullException.ThrowIfNull(executeRepairDocuments);
 
             var transaction = dbContext.Database.BeginTransaction();
@@ -141,16 +141,27 @@ namespace EquipmentRepairLog.Core.Service
             catch (Exception e)
             {
                 transaction.Rollback();
-                throw e.InnerException != null
-                      ? new TransactionAppException("Error in save data.", e.InnerException)
-                      : new TransactionAppException("Error in save data.");
+                throw new TransactionAppException("Error in save data.", e);
             }
         }
 
-        private bool IsFreePropertyDocuments(List<Document> documents) => documents.All(IsFreePropertyDocument);
+        private bool IsFreePropertyDocuments(List<Document> documents)
+        {
+            if (documents.Any())
+            {
+                return true;
+            }
+
+            var registrationNumber = documents.Select(e => e.RegistrationNumber);
+            var numberDocument = documents.Select(e => new { e.OrdinalNumber, e.DocumentType });
+
+            return !dbContext.Documents.Any(document => registrationNumber.Contains(document.RegistrationNumber)
+                                                        || numberDocument.Any(e => e.OrdinalNumber == document.OrdinalNumber
+                                                                                   && e.DocumentType == document.DocumentType));
+        }
 
         private bool IsFreePropertyDocument(Document document)
-            => dbContext.Documents.FirstOrDefault(e => (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType)
-                                                       || e.RegistrationNumber == document.RegistrationNumber) == null;
+            => !dbContext.Documents.Any(e => e.RegistrationNumber == document.RegistrationNumber
+                                            || (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType));
     }
 }
