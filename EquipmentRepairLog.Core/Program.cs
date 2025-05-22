@@ -1,20 +1,24 @@
 ﻿using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
-using EquipmentRepairLog.Core.Data.User;
+using EquipmentRepairLog.Core.Data.Users;
+using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Service;
 using Microsoft.Extensions.DependencyInjection;
 
 var db = new DbContextFactory().Create();
+var documentService = new DocumentService(db);
+
+var divisionExe = new DivisionFactory().Create("Отдел под", "ОППР", 0);
 
 var equipment = new Equipment() { Name = "Клапан запорный", Description = "Клапан новый" };
 db.Equipments.Add(equipment);
 
-var equipmentType = new EquipmentType() { Name = "КПЛВ.49833-12", Equipment = equipment };
+var equipmentType = new EquipmentType() { Name = "КПЛВ.49833-12", Equipment = equipment, EquipmentId = equipment.Id };
 db.EquipmentTypes.Add(equipmentType);
 
-
-var kks = new KKSEquipment() { Equipment = equipment, EquipmentType = equipmentType, KKS = "10KAA22AA345" };
+var kks = new KKSEquipment() { Equipment = equipment, EquipmentType = equipmentType, KKS = "10KAA22AA345", EquipmentId = equipment.Id, EquipmentTypeId = equipmentType.Id };
 db.KKSEquipments.Add(kks);
 
 var division = new Division() { Name = "Реакторный цех", Abbreviation = "РЦ", Number = 21 };
@@ -44,6 +48,8 @@ db.Perfomers.Add(perfomer);
 var repairFacility = new RepairFacility() { Number = 1, Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1" };
 db.RepairFacilities.Add(repairFacility);
 
+db.SaveChanges();
+
 var docFirst = new Document()
 {
     Division = division,
@@ -51,7 +57,13 @@ var docFirst = new Document()
     OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "FirstNumber"
+    RegistrationNumber = "FirstNumber",
+    KKSEquipment = new List<KKSEquipment>() { kks },
+    Perfomers = new List<Perfomer>() { perfomer },
+    DivisionId = division.Id,
+    DocumentTypeId = docTypeFirst.Id,
+    RepairFacilityId = repairFacility.Id,
+    RegistrationDate = DateTime.Now,
 };
 var docSecond = new Document()
 {
@@ -60,21 +72,64 @@ var docSecond = new Document()
     OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "SecondNumber"
+    RegistrationNumber = "SecondNumber",
+    KKSEquipment = new List<KKSEquipment>() { kks },
+    Perfomers = new List<Perfomer>() { perfomer },
+    DivisionId = division.Id,
+    DocumentTypeId = docTypeSecond.Id,
+    RepairFacilityId = repairFacility.Id,
+    RegistrationDate = DateTime.Now,
 };
 
-docFirst.Documents.Add(docSecond);
-docSecond.Documents.Add(docFirst);
+documentService.AddAllDocuments(new List<Document> { docFirst, docSecond });
 
-kks.KKSEquipmentDocuments.AddRange(docFirst, docSecond);
-perfomer.Documents.AddRange(docFirst, docSecond);
+var userService = new UserService(db, new UserValidator());
 
-db.Documents.AddRange(docFirst, docSecond);
+userService.Add("Stan228337", "Qav228337");
 db.SaveChanges();
 
-var user = new User("Stan228337", "Qav228337");
-db.Users.Add(user);
+db.ChangeTracker.Clear();
+
+var equipmentNewFirst = new Equipment() { Name = "Клапан запорный", Description = "Клапан новый" };
 db.SaveChanges();
+
+var equipmentTypeNewFirst = new EquipmentType() { Name = "НГ-2265", Equipment = equipmentNewFirst, EquipmentId = equipmentNewFirst.Id };
+db.SaveChanges();
+
+var kksNewFirst = new KKSEquipment()
+{
+    Equipment = equipmentNewFirst,
+    EquipmentType = equipmentTypeNewFirst,
+    KKS = "20KAA22AA345 -- 20KAA21AA345 20KAA22AA345",
+    EquipmentId = equipmentNewFirst.Id,
+    EquipmentTypeId = equipmentTypeNewFirst.Id
+};
+var kksNewSecond = new KKSEquipment()
+{
+    Equipment = equipmentNewFirst,
+    EquipmentType = equipmentTypeNewFirst,
+    KKS = "20KAA11AA345 -- 20KAA21AA335 20KAA22AA325",
+    EquipmentId = equipmentNewFirst.Id,
+    EquipmentTypeId = equipmentTypeNewFirst.Id
+};
+
+var docNewFirst = new Document()
+{
+    Division = division,
+    DocumentType = docTypeSecond,
+    OrdinalNumber = 1,
+    RepairFacility = repairFacility,
+    RepairDate = DateTime.Now,
+    RegistrationNumber = "SecondNumber",
+    KKSEquipment = new List<KKSEquipment>() { kksNewFirst, kksNewSecond },
+    Perfomers = new List<Perfomer>() { perfomer },
+    DivisionId = division.Id,
+    DocumentTypeId = docTypeSecond.Id,
+    RepairFacilityId = repairFacility.Id,
+    RegistrationDate = DateTime.Now,
+};
+var equipmentService = new EquipmentService(db);
+equipmentService.AddRangeEquipment([kksNewFirst, kksNewSecond]);
 
 static IServiceCollection AppServiceDI()
             => new ServiceCollection().AddSingleton<AppDbContext>()

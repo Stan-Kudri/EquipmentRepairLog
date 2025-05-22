@@ -1,54 +1,43 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Exceptions;
+using EquipmentRepairLog.Core.Exceptions.AppException;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class PerfomerService
+    public class PerfomerService(AppDbContext dbContext, PerfomerFactory perfomerFactory)
     {
-        private readonly AppDbContext _dbContext;
-
-        public PerfomerService(AppDbContext dbContext)
-            => _dbContext = dbContext;
-
         public void Add(Perfomer perfomer)
         {
-            if (perfomer == null)
+            ArgumentNullException.ThrowIfNull(perfomer);
+
+            var existingPerfomer = dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == perfomer.Abbreviation || e.Name == perfomer.Name);
+
+            if (existingPerfomer != null)
             {
-                throw new ArgumentNullException("Transmitted data error.", nameof(perfomer));
-            }
-            if (_dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == perfomer.Abbreviation
-                                                        || e.Name == perfomer.Name) != null)
-            {
-                throw new ArgumentException("Data already in use.", nameof(perfomer));
-            }
-            if (_dbContext.Perfomers.FirstOrDefault(e => e.Id == perfomer.Id) != null)
-            {
-                perfomer.Id = ChangeIdPerfomer();
+                if (existingPerfomer.Abbreviation == perfomer.Abbreviation)
+                {
+                    throw new BusinessLogicException($"Division \"{perfomer.Abbreviation}\" have already been add to the app (DB).");
+                }
+                if (existingPerfomer.Name == perfomer.Name)
+                {
+                    throw new BusinessLogicException($"Division \"{perfomer.Name}\" have already been add to the app (DB).");
+                }
             }
 
-            _dbContext.Perfomers.Add(perfomer);
-            _dbContext.SaveChanges();
+            var perfomerNormalize = perfomerFactory.Create(perfomer.Name, perfomer.Abbreviation);
+            dbContext.Perfomers.Add(perfomerNormalize);
+            dbContext.SaveChanges();
         }
 
         public void Remove(Guid id)
         {
-            var item = _dbContext.Perfomers.FirstOrDefault(e => e.Id == id)
-                        ?? throw new InvalidOperationException("Interaction element not found.");
+            var item = dbContext.Perfomers.FirstOrDefault(e => e.Id == id)
+                        ?? throw new NotFoundException($"The ID for the perfomer with \"{id}\" is already taken.");
 
-            _dbContext.Perfomers.Remove(item);
-            _dbContext.SaveChanges();
-        }
-
-        public Perfomer? GetPerfomer(Guid id)
-            => _dbContext.Perfomers.FirstOrDefault(e => e.Id == id);
-
-        public Perfomer? GetPerfomer(string abbreviation)
-            => _dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == abbreviation);
-
-        private Guid ChangeIdPerfomer()
-        {
-            var id = Guid.NewGuid();
-            return _dbContext.Perfomers.FirstOrDefault(d => d.Id == id) == null ? id : ChangeIdPerfomer();
+            dbContext.Perfomers.Remove(item);
+            dbContext.SaveChanges();
         }
     }
 }

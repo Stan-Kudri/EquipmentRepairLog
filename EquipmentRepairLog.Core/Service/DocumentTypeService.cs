@@ -1,55 +1,56 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Exceptions;
+using EquipmentRepairLog.Core.Exceptions.AppException;
+using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class DocumentTypeService
+    public class DocumentTypeService(AppDbContext dbContext, DocumentTypeFactory documentTypeFactory)
     {
-        private readonly AppDbContext _dbContext;
-
-        public DocumentTypeService(AppDbContext dbContext)
-            => _dbContext = dbContext;
-
         public void Add(DocumentType documentType)
         {
-            if (documentType == null)
+            ArgumentNullException.ThrowIfNull(documentType);
+
+            var existingDocumentType = dbContext.DocumentTypes.FirstOrDefault(e => e.Abbreviation == documentType.Abbreviation
+                                                                           || e.Name == documentType.Name
+                                                                           || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber);
+
+            if (existingDocumentType != null)
             {
-                throw new ArgumentNullException("Transmitted data error.", nameof(documentType));
-            }
-            if (_dbContext.DocumentTypes.FirstOrDefault(e => e.Abbreviation == documentType.Abbreviation
-                                                        || e.Name == documentType.Name
-                                                        || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber) != null)
-            {
-                throw new ArgumentException("Data already in use.", nameof(documentType));
-            }
-            if (_dbContext.DocumentTypes.FirstOrDefault(e => e.Id == documentType.Id) != null)
-            {
-                documentType.Id = ChangeIdDocumentType();
+                if (existingDocumentType.Abbreviation == documentType.Abbreviation)
+                {
+                    throw new BusinessLogicException($"Division \"{documentType.Abbreviation}\" have already been add to the app (DB).");
+                }
+                if (existingDocumentType.Name == documentType.Name)
+                {
+                    throw new BusinessLogicException($"Division \"{documentType.Name}\" have already been add to the app (DB).");
+                }
+                if (existingDocumentType.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber)
+                {
+                    throw new BusinessLogicException($"Division \"{documentType.ExecutiveRepairDocNumber}\" have already been add to the app (DB).");
+                }
             }
 
-            _dbContext.DocumentTypes.Add(documentType);
-            _dbContext.SaveChanges();
+            var documentNormalize = documentTypeFactory.Create(documentType.Name, documentType.Abbreviation, documentType.ExecutiveRepairDocNumber, documentType.IsOnlyTypeDocInRepairLog);
+            dbContext.DocumentTypes.Add(documentNormalize);
+            dbContext.SaveChanges();
         }
 
         public void Remove(Guid id)
         {
-            var item = _dbContext.DocumentTypes.FirstOrDefault(e => e.Id == id)
-                        ?? throw new InvalidOperationException("Interaction element not found.");
+            var item = dbContext.DocumentTypes.FirstOrDefault(e => e.Id == id)
+                        ?? throw new NotFoundException($"The ID for the document type  with \"{id}\" is already taken.");
 
-            _dbContext.DocumentTypes.Remove(item);
-            _dbContext.SaveChanges();
+            dbContext.DocumentTypes.Remove(item);
+            dbContext.SaveChanges();
         }
 
         public DocumentType? GetDocumentType(Guid id)
-            => _dbContext.DocumentTypes.FirstOrDefault(e => e.Id == id);
+            => dbContext.DocumentTypes.AsNoTracking().FirstOrDefault(e => e.Id == id);
 
         public DocumentType? GetDocumentType(string abbreviation)
-            => _dbContext.DocumentTypes.FirstOrDefault(e => e.Abbreviation == abbreviation);
-
-        private Guid ChangeIdDocumentType()
-        {
-            var id = Guid.NewGuid();
-            return _dbContext.DocumentTypes.FirstOrDefault(d => d.Id == id) == null ? id : ChangeIdDocumentType();
-        }
+            => dbContext.DocumentTypes.AsNoTracking().FirstOrDefault(e => e.Abbreviation == abbreviation);
     }
 }
