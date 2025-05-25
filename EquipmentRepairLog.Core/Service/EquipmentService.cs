@@ -2,41 +2,42 @@
 using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
-using EquipmentRepairLog.Core.Exceptions.AppException;
 using System.Data.Entity;
-using System.Text.RegularExpressions;
 
 namespace EquipmentRepairLog.Core.Service
 {
     public class EquipmentService(AppDbContext dbContext)
     {
-        private static Regex regexKKS = new Regex(@"^[0-9]{2}[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{3}$");
-
-        public void AddEquipment(KKSEquipment kksEquipment)
+        public async Task AddEquipment(KKSEquipment kksEquipment)
         {
-            ArgumentNullException.ThrowIfNull(kksEquipment);
-            ArgumentNullException.ThrowIfNull(kksEquipment.Equipment);
-            ArgumentNullException.ThrowIfNull(kksEquipment.EquipmentType);
-            ArgumentException.ThrowIfNullOrEmpty(kksEquipment.KKS);
+            BusinessLogicException.ThrowIfNull(kksEquipment);
+            BusinessLogicException.ThrowIfNull(kksEquipment.Equipment);
+            BusinessLogicException.ThrowIfNull(kksEquipment.EquipmentType);
+            BusinessLogicException.ThrowIfNullOrEmpty(kksEquipment.KKS);
 
             var addKKSEquipments = new List<KKSEquipmentModel>();
+            var resultKKS = KKS.CreateArray(kksEquipment.KKS).ToList();
 
-            if (!KKSValidation(kksEquipment.KKS, out var result))
+            if (resultKKS.Any(e => e.HasError))
             {
-                throw new BusinessLogicException($"Error in kks naming {string.Join(';', result)}.");
+                throw new BusinessLogicException($"Error naming:\n{string.Join(";\n", resultKKS.Where(e => e.HasError).Select(e => e.ErrorMessage))}.");
             }
-            else
+            foreach (var addItem in resultKKS.Where(e => e.HasError == false).Select(e => e.Value))
             {
-                foreach (var addItem in result)
+                if (addItem == null)
                 {
-                    addKKSEquipments.Add(new KKSEquipmentModel() { Equipment = kksEquipment.Equipment, EquipmentType = kksEquipment.EquipmentType, KKS = addItem });
+                    throw new BusinessLogicException("KKS conversion error.");
+                }
+                else
+                {
+                    addKKSEquipments.Add(new KKSEquipmentModel() { Equipment = kksEquipment.Equipment, EquipmentType = kksEquipment.EquipmentType, KKS = addItem.Value });
                 }
             }
 
-            AddMissingEquipmentDocuments(addKKSEquipments);
+            await AddMissingEquipmentDocuments(addKKSEquipments);
         }
 
-        public void AddRangeEquipment(List<KKSEquipment> kksEquipments)
+        public async Task AddRangeEquipment(List<KKSEquipment> kksEquipments)
         {
             ArgumentNullException.ThrowIfNull(kksEquipments);
 
@@ -44,31 +45,35 @@ namespace EquipmentRepairLog.Core.Service
 
             foreach (var item in kksEquipments)
             {
-                ArgumentNullException.ThrowIfNull(item.Equipment);
-                ArgumentNullException.ThrowIfNull(item.EquipmentType);
-                ArgumentException.ThrowIfNullOrEmpty(item.KKS);
+                BusinessLogicException.ThrowIfNull(item.Equipment);
+                BusinessLogicException.ThrowIfNull(item.EquipmentType);
+                BusinessLogicException.ThrowIfNullOrEmpty(item.KKS);
 
-                if (!KKSValidation(item.KKS, out var result))
+                var resultKKS = KKS.CreateArray(item.KKS).ToList();
+
+                if (resultKKS.Any(e => e.HasError))
                 {
-                    throw new BusinessLogicException($"Error in kks naming {string.Join(';', result)}.");
+                    throw new BusinessLogicException($"Error naming:\n{string.Join(";\n", resultKKS.Where(e => e.HasError).Select(e => e.ErrorMessage))}.");
                 }
-                else
+                foreach (var addItem in resultKKS.Where(e => e.HasError == false).Select(e => e.Value))
                 {
-                    foreach (var addItem in result)
+                    if (addItem == null)
                     {
-                        addKKSEquipments.Add(new KKSEquipmentModel() { Equipment = item.Equipment, EquipmentType = item.EquipmentType, KKS = addItem });
+                        throw new BusinessLogicException("KKS conversion error.");
+                    }
+                    else
+                    {
+                        addKKSEquipments.Add(new KKSEquipmentModel() { Equipment = item.Equipment, EquipmentType = item.EquipmentType, KKS = addItem.Value });
                     }
                 }
             }
 
-            AddMissingEquipmentDocuments(addKKSEquipments);
+            await AddMissingEquipmentDocuments(addKKSEquipments);
         }
 
-        private void AddMissingEquipmentDocuments(List<KKSEquipmentModel> kksEquipmentsModel)
+        private async Task AddMissingEquipmentDocuments(List<KKSEquipmentModel> kksEquipmentsModel, CancellationToken cancellationToken = default)
         {
-            var transaction = dbContext.Database.BeginTransaction();
-
-            try
+            await dbContext.RunTransactionAsync(async _ =>
             {
                 //Создание списков типа/марки и вида оборудования
                 var equipmentsType = kksEquipmentsModel.Select(e => e.EquipmentType.Name).Distinct().ToList();
@@ -77,29 +82,35 @@ namespace EquipmentRepairLog.Core.Service
 
                 //Поиск и добавление отсутствующих видов оборудовния
                 var containsDBEquipment = dbContext.Equipments.AsNoTracking().Where(e => equipments.Contains(e.Name)).Select(e => e.Name).ToList();
-                var addEquipment = kksEquipmentsModel.Where(e => !containsDBEquipment.Contains(e.Equipment.Name)).Select(e => e.Equipment);
+                var addEquipment = kksEquipmentsModel.Where(e => !containsDBEquipment.Contains(e.Equipment.Name)).Select(e => e.Equipment).Distinct();
                 if (addEquipment.Any())
                 {
                     dbContext.Equipments.AddRange(addEquipment);
-                    dbContext.SaveChanges();
+                    await dbContext.SaveChangesAsync();
                 }
 
                 //Поиск и добавление отсутствующих типов/марок оборудовния
                 var containsDBEquipmentType = dbContext.EquipmentTypes.AsNoTracking().Where(e => equipmentsType.Contains(e.Name)).Select(e => e.Name).ToList();
-                var missingEquipmentType = kksEquipmentsModel.Where(e => !containsDBEquipmentType.Contains(e.EquipmentType.Name)).Select(e => e.EquipmentType);
+                var missingEquipmentType = kksEquipmentsModel.Where(e => !containsDBEquipmentType.Contains(e.EquipmentType.Name)).Select(e => e.EquipmentType).Distinct();
                 if (missingEquipmentType.Any())
                 {
                     var addEquipmentType = missingEquipmentType.Join(dbContext.Equipments,
-                                                                                          a => a.Equipment?.Name,
-                                                                                          b => b.Name,
-                                                                                          (a, b) => new EquipmentType() { Name = a.Name, EquipmentId = b.Id, Equipment = b });
+                                                                      a => a.Equipment?.Name,
+                                                                      b => b.Name,
+                                                                      (a, b) => new EquipmentType()
+                                                                      {
+                                                                          Name = a.Name,
+                                                                          EquipmentId = b.Id,
+                                                                          Equipment = b
+                                                                      });
                     dbContext.EquipmentTypes.AddRange(addEquipmentType);
-                    dbContext.SaveChanges();
+                    await dbContext.SaveChangesAsync();
                 }
 
                 //Создание словоря для EquipmentTypes и Equipments.
-                var equipmentsTypeDictionary = dbContext.EquipmentTypes.AsNoTracking().Where(e => equipmentsType.Contains(e.Name)).ToDictionary(e => e.Name);
-                var equipmentsDictionary = dbContext.Equipments.AsNoTracking().Where(e => equipments.Contains(e.Name)).ToDictionary(e => e.Name);
+
+                var equipmentsDictionary = dbContext.Equipments.AsNoTracking().Where(e => equipments.Contains(e.Name)).Select(e => e).ToList().DistinctBy(type => type.Name).ToDictionary(e => e.Name);
+                var equipmentsTypeDictionary = dbContext.EquipmentTypes.AsNoTracking().Where(type => equipmentsType.Contains(type.Name)).ToList().DistinctBy(type => type.Name).ToDictionary(e => e.Name);
 
                 //Добавление Id и объектов (Equipment/EquipmentType) в поля класса.
                 foreach (var item in kksEquipmentsModel)
@@ -132,7 +143,7 @@ namespace EquipmentRepairLog.Core.Service
                 var addNewKKSEquipments = kksEquipments.ExceptBy(equipmentsDB.Select(e => e.KKS), e => e.KKS).ToList();
 
                 //Добавление новых KKS со всеми данными в БД
-                dbContext.KKSEquipments.AddRange(addNewKKSEquipments);
+                dbContext.KKSEquipments.AddRangeAsync(addNewKKSEquipments);
 
                 //Поиск отличий полей от дублирующих KKS и добавление их в БД, если есть отличия 
                 foreach (var addItem in kksEquipments)
@@ -143,37 +154,16 @@ namespace EquipmentRepairLog.Core.Service
                             && (equipmentsDB[i].EquipmentId != addItem.EquipmentId
                             || equipmentsDB[i].EquipmentTypeId != addItem.EquipmentTypeId))
                         {
-                            dbContext.KKSEquipments.Add(addItem);
+                            dbContext.KKSEquipments.AddAsync(addItem);
                         }
                     }
                 }
 
-                dbContext.SaveChanges();
-                transaction.Commit();
-            }
-            catch (Exception e)
-            {
-                transaction.Rollback();
-                throw new TransactionAppException("Error in save data.", e);
-            }
-        }
+                await dbContext.SaveChangesAsync();
+                return DBNull.Value;
+            },
+            cancellationToken);
 
-        private bool KKSValidation(string str, out List<string> result)
-        {
-            result = new List<string>();
-            var arrayKKS = str.Split([',', ' ', '-', '.'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-            foreach (var item in arrayKKS)
-            {
-                if (!regexKKS.IsMatch(item))
-                {
-                    result.Add(item);
-                    return false;
-                }
-            }
-
-            result = arrayKKS.ToList();
-            return true;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
 
-namespace EquipmentRepairLog.Core.Data.ValidationData
+namespace EquipmentRepairLog.Core.FactoryData
 {
     public class PerfomerFactory : BaseDataFactory<Division>
     {

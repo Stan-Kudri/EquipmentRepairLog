@@ -1,43 +1,45 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
-using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Exceptions.AppException;
+using EquipmentRepairLog.Core.FactoryData;
+using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
 {
     public class PerfomerService(AppDbContext dbContext, PerfomerFactory perfomerFactory)
     {
-        public void Add(Perfomer perfomer)
+        public async Task AddAsync(Perfomer perfomer)
         {
-            ArgumentNullException.ThrowIfNull(perfomer);
+            BusinessLogicException.ThrowIfNull(perfomer);
 
             var existingPerfomer = dbContext.Perfomers.FirstOrDefault(e => e.Abbreviation == perfomer.Abbreviation || e.Name == perfomer.Name);
 
-            if (existingPerfomer != null)
+            if (existingPerfomer == null)
             {
-                if (existingPerfomer.Abbreviation == perfomer.Abbreviation)
-                {
-                    throw new BusinessLogicException($"Division \"{perfomer.Abbreviation}\" have already been add to the app (DB).");
-                }
-                if (existingPerfomer.Name == perfomer.Name)
-                {
-                    throw new BusinessLogicException($"Division \"{perfomer.Name}\" have already been add to the app (DB).");
-                }
+                var perfomerNormalize = perfomerFactory.Create(perfomer.Name, perfomer.Abbreviation);
+                await dbContext.Perfomers.AddAsync(perfomerNormalize);
+                await dbContext.SaveChangesAsync();
+                return;
             }
 
-            var perfomerNormalize = perfomerFactory.Create(perfomer.Name, perfomer.Abbreviation);
-            dbContext.Perfomers.Add(perfomerNormalize);
-            dbContext.SaveChanges();
+            if (existingPerfomer.Abbreviation == perfomer.Abbreviation)
+            {
+                BusinessLogicException.EnsureUniqueProperty<Division>(existingPerfomer.Abbreviation);
+            }
+            if (existingPerfomer.Name == perfomer.Name)
+            {
+                BusinessLogicException.EnsureUniqueProperty<Division>(existingPerfomer.Name);
+            }
         }
 
-        public void Remove(Guid id)
+        public async Task Remove(Guid id)
         {
-            var item = dbContext.Perfomers.FirstOrDefault(e => e.Id == id)
-                        ?? throw new NotFoundException($"The ID for the perfomer with \"{id}\" is already taken.");
-
-            dbContext.Perfomers.Remove(item);
-            dbContext.SaveChanges();
+            var count = await dbContext.Perfomers.Where(e => e.Id == id).ExecuteDeleteAsync();
+            if (count == 0)
+            {
+                throw new NotFoundException($"The ID for the perfomer with \"{id}\" is already taken.");
+            }
         }
     }
 }

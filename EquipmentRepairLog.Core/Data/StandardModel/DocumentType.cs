@@ -29,7 +29,10 @@ namespace EquipmentRepairLog.Core.Data.StandardModel
         /// </summary>
         public List<Document>? Documents { get; set; } = new List<Document>();
 
-        public bool Equals(DocumentType? documentType)
+        public override bool Equals(object? obj)
+            => obj is not DocumentType item ? false : Equals(item);
+
+        private bool Equals(DocumentType? documentType)
             => documentType is not null && documentType.Name == Name && documentType.Abbreviation == Abbreviation && documentType.ExecutiveRepairDocNumber == ExecutiveRepairDocNumber;
 
         public override int GetHashCode() => HashCode.Combine(Name, Abbreviation, ExecutiveRepairDocNumber);

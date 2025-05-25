@@ -1,7 +1,7 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Exceptions;
 
-namespace EquipmentRepairLog.Core.Data.ValidationData
+namespace EquipmentRepairLog.Core.FactoryData
 {
     public class DivisionFactory : BaseDataFactory<Division>
     {

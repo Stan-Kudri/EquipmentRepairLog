@@ -2,12 +2,12 @@
 using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Data.Users;
-using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.FactoryData;
 using EquipmentRepairLog.Core.Service;
 using Microsoft.Extensions.DependencyInjection;
 
-var db = new DbContextFactory().Create();
+var db = await new DbContextFactory().Create();
 var documentService = new DocumentService(db);
 
 var divisionExe = new DivisionFactory().Create("Отдел под", "ОППР", 0);
@@ -81,20 +81,17 @@ var docSecond = new Document()
     RegistrationDate = DateTime.Now,
 };
 
-documentService.AddAllDocuments(new List<Document> { docFirst, docSecond });
+await documentService.AddAllDocumentsAsync(new List<Document> { docFirst, docSecond });
 
 var userService = new UserService(db, new UserValidator());
 
-userService.Add("Stan228337", "Qav228337");
-db.SaveChanges();
+await userService.AddAsync("Stan228337", "Qav228337");
 
 db.ChangeTracker.Clear();
 
 var equipmentNewFirst = new Equipment() { Name = "Клапан запорный", Description = "Клапан новый" };
-db.SaveChanges();
 
 var equipmentTypeNewFirst = new EquipmentType() { Name = "НГ-2265", Equipment = equipmentNewFirst, EquipmentId = equipmentNewFirst.Id };
-db.SaveChanges();
 
 var kksNewFirst = new KKSEquipment()
 {
@@ -129,7 +126,7 @@ var docNewFirst = new Document()
     RegistrationDate = DateTime.Now,
 };
 var equipmentService = new EquipmentService(db);
-equipmentService.AddRangeEquipment([kksNewFirst, kksNewSecond]);
+await equipmentService.AddRangeEquipment([kksNewFirst, kksNewSecond]);
 
 static IServiceCollection AppServiceDI()
             => new ServiceCollection().AddSingleton<AppDbContext>()

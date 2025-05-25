@@ -9,6 +9,7 @@ namespace EquipmentRepairLog.Core.DBContext.Configuration.Equipments
         protected override void ConfigureModel(EntityTypeBuilder<EquipmentType> builder)
         {
             builder.ToTable("equipment_type");
+            builder.HasIndex(e => e.Name).IsUnique();
             builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
         }
     }

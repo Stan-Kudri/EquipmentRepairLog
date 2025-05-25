@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EquipmentRepairLog.Core.DBContext
+namespace EquipmentRepairLog.Core.DBContext.Configuration
 {
     public abstract class EntityBaseConfiguration<T> : IEntityTypeConfiguration<T>
         where T : Entity

@@ -7,10 +7,10 @@ namespace EquipmentRepairLog.Core.Service
 {
     public class UserService(AppDbContext dbContext, UserValidator userValidator)
     {
-        public void Add(string username, string password)
+        public async Task AddAsync(string username, string password)
         {
-            ArgumentNullException.ThrowIfNull(username);
-            ArgumentNullException.ThrowIfNull(password);
+            BusinessLogicException.ThrowIfNull(username);
+            BusinessLogicException.ThrowIfNull(password);
 
             if (!userValidator.ValidFormatUsername(username, out var messageValidUsername))
             {
@@ -30,8 +30,8 @@ namespace EquipmentRepairLog.Core.Service
             var passwordHash = Hash(password);
             var user = new User(username, passwordHash);
 
-            dbContext.Users.Add(user);
-            dbContext.SaveChanges();
+            await dbContext.Users.AddAsync(user);
+            await dbContext.SaveChangesAsync();
         }
 
         public User? GetUser(string username, string passwordHash)
@@ -40,7 +40,6 @@ namespace EquipmentRepairLog.Core.Service
         public bool IsFreeUsername(string username)
             => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username) == null;
 
-        private string Hash(string password)
-            => BCrypt.Net.BCrypt.HashPassword(password);
+        private string Hash(string password) => BCrypt.Net.BCrypt.HashPassword(password);
     }
 }

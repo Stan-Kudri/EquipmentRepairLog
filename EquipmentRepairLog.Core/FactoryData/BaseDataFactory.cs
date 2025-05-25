@@ -1,7 +1,8 @@
-﻿using EquipmentRepairLog.Core.Exceptions;
+﻿using EquipmentRepairLog.Core.Data;
+using EquipmentRepairLog.Core.Exceptions;
 using System.Text;
 
-namespace EquipmentRepairLog.Core.Data.ValidationData
+namespace EquipmentRepairLog.Core.FactoryData
 {
     public abstract class BaseDataFactory<T>
         where T : Entity
@@ -14,8 +15,8 @@ namespace EquipmentRepairLog.Core.Data.ValidationData
 
         protected (string Name, string Abbreviation) EnsureValid(string name, string abbreviation)
         {
-            ArgumentException.ThrowIfNullOrEmpty(name);
-            ArgumentException.ThrowIfNullOrEmpty(abbreviation);
+            BusinessLogicException.ThrowIfNullOrEmpty(name);
+            BusinessLogicException.ThrowIfNullOrEmpty(abbreviation);
 
             name = NormalizeString(name);
             abbreviation = NormalizeString(abbreviation);

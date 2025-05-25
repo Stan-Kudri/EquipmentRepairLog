@@ -13,7 +13,7 @@ namespace EquipmentRepairLog.Core.DBContext.Configuration
             builder.HasIndex(e => e.Username).IsUnique();
             builder.Property(e => e.Username).IsRequired().HasColumnName("username").HasMaxLength(128);
             builder.Property(e => e.PasswordHash).IsRequired().HasColumnName("password_hash").HasMaxLength(128);
-            builder.Property(e => e.UserRole).HasColumnName("role").HasDefaultValue(UserRole.Viewer).SmartEnumConversion();
+            builder.Property(e => e.UserRole).HasColumnName("role").HasDefaultValue(UserRole.Viewer).SmartEnumNameConversion();
         }
     }
 }

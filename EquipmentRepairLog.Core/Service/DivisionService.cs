@@ -1,49 +1,51 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
-using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Exceptions.AppException;
+using EquipmentRepairLog.Core.FactoryData;
+using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
 {
     public class DivisionService(AppDbContext dbContext, DivisionFactory divisionFactory)
     {
-        public void Add(Division division)
+        public async Task AddAsync(Division division)
         {
-            ArgumentNullException.ThrowIfNull(division);
+            BusinessLogicException.ThrowIfNull(division);
 
             var existingDivision = dbContext.Divisions.FirstOrDefault(e => e.Abbreviation == division.Abbreviation
                                                                            || e.Name == division.Name
                                                                            || e.Number == division.Number);
 
-            if (existingDivision != null)
+            if (existingDivision == null)
             {
-                if (existingDivision.Abbreviation == division.Abbreviation)
-                {
-                    throw new BusinessLogicException($"Division \"{division.Abbreviation}\" have already been add to the app (DB).");
-                }
-                if (existingDivision.Name == division.Name)
-                {
-                    throw new BusinessLogicException($"Division \"{division.Name}\" have already been add to the app (DB).");
-                }
-                if (existingDivision.Number == division.Number)
-                {
-                    throw new BusinessLogicException($"Division \"{division.Number}\" have already been add to the app (DB).");
-                }
+                var divisionNormalize = divisionFactory.Create(division.Name, division.Abbreviation, division.Number);
+                await dbContext.Divisions.AddAsync(divisionNormalize);
+                await dbContext.SaveChangesAsync();
+                return;
             }
 
-            var divisionNormalize = divisionFactory.Create(division.Name, division.Abbreviation, division.Number);
-            dbContext.Divisions.Add(divisionNormalize);
-            dbContext.SaveChanges();
+            if (existingDivision.Abbreviation == division.Abbreviation)
+            {
+                BusinessLogicException.EnsureUniqueProperty<Division>(existingDivision.Abbreviation);
+            }
+            if (existingDivision.Name == division.Name)
+            {
+                BusinessLogicException.EnsureUniqueProperty<Division>(existingDivision.Name);
+            }
+            if (existingDivision.Number == division.Number)
+            {
+                BusinessLogicException.EnsureUniqueProperty<Division>(existingDivision.Number);
+            }
         }
 
-        public void Remove(Guid id)
+        public async Task Remove(Guid id)
         {
-            var item = dbContext.Divisions.FirstOrDefault(e => e.Id == id)
-                        ?? throw new NotFoundException($"The ID for the division with \"{id}\" is already taken.");
-
-            dbContext.Divisions.Remove(item);
-            dbContext.SaveChanges();
+            var count = await dbContext.Divisions.Where(e => e.Id == id).ExecuteDeleteAsync();
+            if (count == 0)
+            {
+                throw new NotFoundException($"The ID for the division with \"{id}\" is already taken.");
+            }
         }
     }
 }
