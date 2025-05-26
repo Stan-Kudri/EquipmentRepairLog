@@ -9,7 +9,7 @@ namespace EquipmentRepairLog.Core.Service
 {
     public class DocumentTypeService(AppDbContext dbContext, DocumentTypeFactory documentTypeFactory)
     {
-        public async Task Add(DocumentType documentType)
+        public async Task AddAsync(DocumentType documentType, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(documentType);
 
@@ -20,8 +20,8 @@ namespace EquipmentRepairLog.Core.Service
             if (existingDocumentType == null)
             {
                 var documentNormalize = documentTypeFactory.Create(documentType.Name, documentType.Abbreviation, documentType.ExecutiveRepairDocNumber, documentType.IsOnlyTypeDocInRepairLog);
-                await dbContext.DocumentTypes.AddAsync(documentNormalize);
-                await dbContext.SaveChangesAsync();
+                await dbContext.DocumentTypes.AddAsync(documentNormalize, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
                 return;
             }
 
@@ -39,9 +39,9 @@ namespace EquipmentRepairLog.Core.Service
             }
         }
 
-        public async Task Remove(Guid id)
+        public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
         {
-            var count = await dbContext.DocumentTypes.Where(e => e.Id == id).ExecuteDeleteAsync();
+            var count = await dbContext.DocumentTypes.Where(e => e.Id == id).ExecuteDeleteAsync(cancellationToken);
             if (count == 0)
             {
                 throw new NotFoundException($"The ID for the document type  with \"{id}\" is already taken.");

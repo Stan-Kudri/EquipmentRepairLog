@@ -7,7 +7,7 @@ namespace EquipmentRepairLog.Core.Service
 {
     public class UserService(AppDbContext dbContext, UserValidator userValidator)
     {
-        public async Task AddAsync(string username, string password)
+        public async Task AddAsync(string username, string password, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(username);
             BusinessLogicException.ThrowIfNull(password);
@@ -30,8 +30,8 @@ namespace EquipmentRepairLog.Core.Service
             var passwordHash = Hash(password);
             var user = new User(username, passwordHash);
 
-            await dbContext.Users.AddAsync(user);
-            await dbContext.SaveChangesAsync();
+            await dbContext.Users.AddAsync(user, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public User? GetUser(string username, string passwordHash)

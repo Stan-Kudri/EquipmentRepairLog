@@ -28,11 +28,11 @@ namespace EquipmentRepairLog.Core.Service
             await dbContext.RunTransactionAsync(async _ =>
             {
                 var executeRepairDocument = new ExecuteRepairDocument();
-                await dbContext.ExecuteRepairDocuments.AddAsync(executeRepairDocument);
+                await dbContext.ExecuteRepairDocuments.AddAsync(executeRepairDocument, cancellationToken);
 
                 documents.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
-                await dbContext.Documents.AddRangeAsync(documents);
-                await dbContext.SaveChangesAsync();
+                await dbContext.Documents.AddRangeAsync(documents, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
 
             },
@@ -53,12 +53,12 @@ namespace EquipmentRepairLog.Core.Service
             {
                 //Создание нового комплекта документа(ов)
                 var executeRepairDocument = new ExecuteRepairDocument();
-                await dbContext.ExecuteRepairDocuments.AddAsync(executeRepairDocument);
+                await dbContext.ExecuteRepairDocuments.AddAsync(executeRepairDocument, cancellationToken);
 
                 //Добавление документа и связь его с комплектом документа(ов)
                 document.ExecuteRepairDocuments.Add(executeRepairDocument);
-                await dbContext.Documents.AddAsync(document);
-                await dbContext.SaveChangesAsync();
+                await dbContext.Documents.AddAsync(document, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
             },
             cancellationToken);
@@ -83,8 +83,8 @@ namespace EquipmentRepairLog.Core.Service
             await dbContext.RunTransactionAsync(async _ =>
             {
                 document.ExecuteRepairDocuments.Add(executeRepairDoc);
-                await dbContext.Documents.AddAsync(document);
-                await dbContext.SaveChangesAsync();
+                await dbContext.Documents.AddAsync(document, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
             },
             cancellationToken);
@@ -125,7 +125,7 @@ namespace EquipmentRepairLog.Core.Service
 
                 dbContext.Documents.RemoveRange(documents);
                 dbContext.ExecuteRepairDocuments.RemoveRange(executeRepairDocuments);
-                await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync(cancellationToken);
 
                 return DBNull.Value;
             },

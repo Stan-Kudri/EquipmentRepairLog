@@ -9,7 +9,7 @@ namespace EquipmentRepairLog.Core.Service
 {
     public class DivisionService(AppDbContext dbContext, DivisionFactory divisionFactory)
     {
-        public async Task AddAsync(Division division)
+        public async Task AddAsync(Division division, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(division);
 
@@ -20,8 +20,8 @@ namespace EquipmentRepairLog.Core.Service
             if (existingDivision == null)
             {
                 var divisionNormalize = divisionFactory.Create(division.Name, division.Abbreviation, division.Number);
-                await dbContext.Divisions.AddAsync(divisionNormalize);
-                await dbContext.SaveChangesAsync();
+                await dbContext.Divisions.AddAsync(divisionNormalize, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
                 return;
             }
 
@@ -39,9 +39,9 @@ namespace EquipmentRepairLog.Core.Service
             }
         }
 
-        public async Task Remove(Guid id)
+        public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
         {
-            var count = await dbContext.Divisions.Where(e => e.Id == id).ExecuteDeleteAsync();
+            var count = await dbContext.Divisions.Where(e => e.Id == id).ExecuteDeleteAsync(cancellationToken);
             if (count == 0)
             {
                 throw new NotFoundException($"The ID for the division with \"{id}\" is already taken.");

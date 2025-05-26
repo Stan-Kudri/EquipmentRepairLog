@@ -9,7 +9,7 @@ namespace EquipmentRepairLog.Core.Service
 {
     public class PerfomerService(AppDbContext dbContext, PerfomerFactory perfomerFactory)
     {
-        public async Task AddAsync(Perfomer perfomer)
+        public async Task AddAsync(Perfomer perfomer, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(perfomer);
 
@@ -18,8 +18,8 @@ namespace EquipmentRepairLog.Core.Service
             if (existingPerfomer == null)
             {
                 var perfomerNormalize = perfomerFactory.Create(perfomer.Name, perfomer.Abbreviation);
-                await dbContext.Perfomers.AddAsync(perfomerNormalize);
-                await dbContext.SaveChangesAsync();
+                await dbContext.Perfomers.AddAsync(perfomerNormalize, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
                 return;
             }
 
@@ -33,9 +33,9 @@ namespace EquipmentRepairLog.Core.Service
             }
         }
 
-        public async Task Remove(Guid id)
+        public async Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var count = await dbContext.Perfomers.Where(e => e.Id == id).ExecuteDeleteAsync();
+            var count = await dbContext.Perfomers.Where(e => e.Id == id).ExecuteDeleteAsync(cancellationToken);
             if (count == 0)
             {
                 throw new NotFoundException($"The ID for the perfomer with \"{id}\" is already taken.");

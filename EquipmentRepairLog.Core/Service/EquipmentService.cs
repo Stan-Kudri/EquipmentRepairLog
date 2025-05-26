@@ -2,6 +2,7 @@
 using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
+using EquipmentRepairLog.Core.Extension;
 using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
@@ -20,7 +21,7 @@ namespace EquipmentRepairLog.Core.Service
 
             if (resultKKS.Any(e => e.HasError))
             {
-                throw new BusinessLogicException($"Error naming:\n{string.Join(";\n", resultKKS.Where(e => e.HasError).Select(e => e.ErrorMessage))}.");
+                throw new BusinessLogicException($"Error naming:{Environment.NewLine},{resultKKS.ErrorListMassage()}");
             }
             foreach (var addItem in resultKKS.Where(e => e.HasError == false).Select(e => e.Value))
             {
@@ -53,7 +54,7 @@ namespace EquipmentRepairLog.Core.Service
 
                 if (resultKKS.Any(e => e.HasError))
                 {
-                    throw new BusinessLogicException($"Error naming:\n{string.Join(";\n", resultKKS.Where(e => e.HasError).Select(e => e.ErrorMessage))}.");
+                    throw new BusinessLogicException($"Error naming:{Environment.NewLine},{resultKKS.ErrorListMassage()}");
                 }
                 foreach (var addItem in resultKKS.Where(e => e.HasError == false).Select(e => e.Value))
                 {
@@ -71,6 +72,7 @@ namespace EquipmentRepairLog.Core.Service
             await AddMissingEquipmentDocuments(addKKSEquipments);
         }
 
+        // Disable BCC2008
         private async Task AddMissingEquipmentDocuments(List<KKSEquipmentModel> kksEquipmentsModel, CancellationToken cancellationToken = default)
         {
             await dbContext.RunTransactionAsync(async _ =>
@@ -85,8 +87,8 @@ namespace EquipmentRepairLog.Core.Service
                 var addEquipment = kksEquipmentsModel.Where(e => !containsDBEquipment.Contains(e.Equipment.Name)).Select(e => e.Equipment).Distinct();
                 if (addEquipment.Any())
                 {
-                    dbContext.Equipments.AddRange(addEquipment);
-                    await dbContext.SaveChangesAsync();
+                    await dbContext.Equipments.AddRangeAsync(addEquipment, cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
                 }
 
                 //Поиск и добавление отсутствующих типов/марок оборудовния
@@ -103,8 +105,8 @@ namespace EquipmentRepairLog.Core.Service
                                                                           EquipmentId = b.Id,
                                                                           Equipment = b
                                                                       });
-                    dbContext.EquipmentTypes.AddRange(addEquipmentType);
-                    await dbContext.SaveChangesAsync();
+                    await dbContext.EquipmentTypes.AddRangeAsync(addEquipmentType, cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
                 }
 
                 //Создание словоря для EquipmentTypes и Equipments.
@@ -143,7 +145,7 @@ namespace EquipmentRepairLog.Core.Service
                 var addNewKKSEquipments = kksEquipments.ExceptBy(equipmentsDB.Select(e => e.KKS), e => e.KKS).ToList();
 
                 //Добавление новых KKS со всеми данными в БД
-                dbContext.KKSEquipments.AddRangeAsync(addNewKKSEquipments);
+                await dbContext.KKSEquipments.AddRangeAsync(addNewKKSEquipments, cancellationToken);
 
                 //Поиск отличий полей от дублирующих KKS и добавление их в БД, если есть отличия 
                 foreach (var addItem in kksEquipments)
@@ -154,12 +156,12 @@ namespace EquipmentRepairLog.Core.Service
                             && (equipmentsDB[i].EquipmentId != addItem.EquipmentId
                             || equipmentsDB[i].EquipmentTypeId != addItem.EquipmentTypeId))
                         {
-                            dbContext.KKSEquipments.AddAsync(addItem);
+                            await dbContext.KKSEquipments.AddAsync(addItem, cancellationToken);
                         }
                     }
                 }
 
-                await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
             },
             cancellationToken);
