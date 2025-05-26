@@ -21,5 +21,10 @@
         /// Список типов/марок оборудования
         /// </summary>
         public List<EquipmentType>? EquipmentTypes { get; set; } = new List<EquipmentType>();
+
+        public bool Equals(Equipment? equipment)
+            => equipment is not null && equipment.Description == Description && equipment.Name == Name;
+
+        public override int GetHashCode() => HashCode.Combine(Name, Id);
     }
 }

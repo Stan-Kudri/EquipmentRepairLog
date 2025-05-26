@@ -8,12 +8,12 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// <summary>
         /// Дата регистрации
         /// </summary>
-        public DateTime RegistrationDate { get; set; } = DateTime.Now;
+        public required DateTime RegistrationDate { get; set; } = DateTime.Now;
 
         /// <summary>
         /// Дата ремонта
         /// </summary>
-        public DateTime RepairDate { get; set; }
+        public required DateTime RepairDate { get; set; }
 
         /// <summary>
         /// Дата для изменения номера регистрации
@@ -24,43 +24,38 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// <summary>
         /// Порядковый номер документа по типу и году регистрации
         /// </summary>
-        public int OrdinalNumber { get; set; }
+        public required int OrdinalNumber { get; set; }
 
         /// <summary>
         /// Регистрационный номер документа
         /// </summary>
-        public string RegistrationNumber { get; set; } = string.Empty;
+        public required string RegistrationNumber { get; set; } = string.Empty;
 
         /// <summary>
         /// Примечание
         /// </summary>
         public string? Note { get; set; } = string.Empty;
 
-        public Guid DocumentTypeId { get; set; }
+        public required Guid DocumentTypeId { get; set; }
 
         /// <summary>
         /// Тип документа
         /// </summary>
         public DocumentType? DocumentType { get; set; }
 
-        public Guid DivisionId { get; set; }
+        public required Guid DivisionId { get; set; }
 
         /// <summary>
         /// Цех/отдел предстовитель оборудования
         /// </summary>
         public Division? Division { get; set; }
 
-        public Guid RepairFacilityId { get; set; }
+        public required Guid RepairFacilityId { get; set; }
 
         /// <summary>
         /// Место нахождения оборудования (По принадлежности к ЭБ 1, ЭБ 2 и ОСО)
         /// </summary>
         public RepairFacility? RepairFacility { get; set; }
-
-        /// <summary>
-        /// Список регистрационных номеров связанных документов
-        /// </summary>
-        public List<Document>? Documents { get; set; } = new List<Document>();
 
         /// <summary>
         /// Список KKS оборудования
@@ -71,5 +66,16 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// Исполнители работ
         /// </summary>
         public List<Perfomer>? Perfomers { get; set; } = new List<Perfomer>();
+
+        /// <summary>
+        /// Список комплектов связанных с документом
+        /// </summary>
+        public List<ExecuteRepairDocument>? ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
+
+        public bool Equals(Document? document)
+            => document is not null && document.RegistrationNumber == RegistrationNumber && document.OrdinalNumber == OrdinalNumber && document.DocumentTypeId == DocumentTypeId;
+
+        public override int GetHashCode() => HashCode.Combine(RegistrationNumber, OrdinalNumber, DocumentTypeId);
+
     }
 }

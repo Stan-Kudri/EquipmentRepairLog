@@ -1,37 +1,45 @@
-﻿using EquipmentRepairLog.Core.Data.User;
+﻿using EquipmentRepairLog.Core.Data.Users;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class UserService
+    public class UserService(AppDbContext dbContext, UserValidator userValidator)
     {
-        private readonly AppDbContext _dbContext;
-
-        public UserService(AppDbContext appDbContext) => _dbContext = appDbContext;
-
-        public void Add(User user)
+        public async Task AddAsync(string username, string password, CancellationToken cancellationToken = default)
         {
-            if (user == null)
+            BusinessLogicException.ThrowIfNull(username);
+            BusinessLogicException.ThrowIfNull(password);
+
+            if (!userValidator.ValidFormatUsername(username, out var messageValidUsername))
             {
-                throw new ArgumentException("The received parameters are not correct.");
+                throw new BusinessLogicException(messageValidUsername);
             }
 
-            if (_dbContext.Users.Any(e => e.Username == user.Username))
+            if (!userValidator.ValidFormatPassword(password, out var messageValidPass))
             {
-                throw new ArgumentException("This username exists.");
+                throw new BusinessLogicException(messageValidPass);
             }
 
-            _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
+            if (dbContext.Users.Any(e => e.Username == username))
+            {
+                throw new BusinessLogicException($"This username {username} exists.");
+            }
+
+            var passwordHash = Hash(password);
+            var user = new User(username, passwordHash);
+
+            await dbContext.Users.AddAsync(user, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public User? GetUser(string username, string passwordHash)
-            => _dbContext.Users.FirstOrDefault(e => e.Username == username && e.PasswordHash == passwordHash);
+            => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username && e.PasswordHash == passwordHash);
 
         public bool IsFreeUsername(string username)
-            => _dbContext.Users.FirstOrDefault(e => e.Username == username) == null;
+            => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username) == null;
 
-        public bool IsUserData(User user)
-            => _dbContext.Users.FirstOrDefault(e => e.Username == user.Username && e.PasswordHash == user.PasswordHash) != null;
+        private string Hash(string password) => BCrypt.Net.BCrypt.HashPassword(password);
     }
 }

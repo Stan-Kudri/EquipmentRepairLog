@@ -1,55 +1,51 @@
 ﻿using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.DBContext;
+using EquipmentRepairLog.Core.Exceptions;
+using EquipmentRepairLog.Core.Exceptions.AppException;
+using EquipmentRepairLog.Core.FactoryData;
+using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class DocumentTypeService
+    public class DocumentTypeService(AppDbContext dbContext, DocumentTypeFactory documentTypeFactory)
     {
-        private readonly AppDbContext _dbContext;
-
-        public DocumentTypeService(AppDbContext dbContext)
-            => _dbContext = dbContext;
-
-        public void Add(DocumentType documentType)
+        public async Task AddAsync(DocumentType documentType, CancellationToken cancellationToken = default)
         {
-            if (documentType == null)
+            BusinessLogicException.ThrowIfNull(documentType);
+
+            var existingDocumentType = dbContext.DocumentTypes.FirstOrDefault(e => e.Abbreviation == documentType.Abbreviation
+                                                                           || e.Name == documentType.Name
+                                                                           || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber);
+
+            if (existingDocumentType == null)
             {
-                throw new ArgumentNullException("Transmitted data error.", nameof(documentType));
-            }
-            if (_dbContext.DocumentTypes.FirstOrDefault(e => e.Abbreviation == documentType.Abbreviation
-                                                        || e.Name == documentType.Name
-                                                        || e.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber) != null)
-            {
-                throw new ArgumentException("Data already in use.", nameof(documentType));
-            }
-            if (_dbContext.DocumentTypes.FirstOrDefault(e => e.Id == documentType.Id) != null)
-            {
-                documentType.Id = ChangeIdDocumentType();
+                var documentNormalize = documentTypeFactory.Create(documentType.Name, documentType.Abbreviation, documentType.ExecutiveRepairDocNumber, documentType.IsOnlyTypeDocInRepairLog);
+                await dbContext.DocumentTypes.AddAsync(documentNormalize, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
+                return;
             }
 
-            _dbContext.DocumentTypes.Add(documentType);
-            _dbContext.SaveChanges();
+            if (existingDocumentType.Abbreviation == documentType.Abbreviation)
+            {
+                BusinessLogicException.EnsureUniqueProperty<Division>(existingDocumentType.Abbreviation);
+            }
+            if (existingDocumentType.Name == documentType.Name)
+            {
+                BusinessLogicException.EnsureUniqueProperty<Division>(existingDocumentType.Name);
+            }
+            if (existingDocumentType.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber)
+            {
+                BusinessLogicException.EnsureUniqueProperty<Division>(existingDocumentType.ExecutiveRepairDocNumber);
+            }
         }
 
-        public void Remove(Guid id)
+        public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
         {
-            var item = _dbContext.DocumentTypes.FirstOrDefault(e => e.Id == id)
-                        ?? throw new InvalidOperationException("Interaction element not found.");
-
-            _dbContext.DocumentTypes.Remove(item);
-            _dbContext.SaveChanges();
-        }
-
-        public DocumentType? GetDocumentType(Guid id)
-            => _dbContext.DocumentTypes.FirstOrDefault(e => e.Id == id);
-
-        public DocumentType? GetDocumentType(string abbreviation)
-            => _dbContext.DocumentTypes.FirstOrDefault(e => e.Abbreviation == abbreviation);
-
-        private Guid ChangeIdDocumentType()
-        {
-            var id = Guid.NewGuid();
-            return _dbContext.DocumentTypes.FirstOrDefault(d => d.Id == id) == null ? id : ChangeIdDocumentType();
+            var count = await dbContext.DocumentTypes.Where(e => e.Id == id).ExecuteDeleteAsync(cancellationToken);
+            if (count == 0)
+            {
+                throw new NotFoundException($"The ID for the document type  with \"{id}\" is already taken.");
+            }
         }
     }
 }

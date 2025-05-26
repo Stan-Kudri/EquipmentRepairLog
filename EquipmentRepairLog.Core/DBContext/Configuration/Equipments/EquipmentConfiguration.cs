@@ -11,6 +11,7 @@ namespace EquipmentRepairLog.Core.DBContext.Configuration.Equipments
             builder.ToTable("equipment");
             builder.HasKey(x => x.Id);
             builder.Property(x => x.Id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
+            builder.HasIndex(e => e.Name).IsUnique();
             builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
             builder.Property(x => x.Description).HasColumnName("description").HasMaxLength(256).HasDefaultValue(string.Empty);
             builder.HasMany(x => x.EquipmentsKKS).WithOne(x => x.Equipment).HasForeignKey(x => x.EquipmentId).IsRequired();
