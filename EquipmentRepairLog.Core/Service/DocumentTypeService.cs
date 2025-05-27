@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Exceptions.AppException;
@@ -29,10 +29,12 @@ namespace EquipmentRepairLog.Core.Service
             {
                 BusinessLogicException.EnsureUniqueProperty<Division>(existingDocumentType.Abbreviation);
             }
+
             if (existingDocumentType.Name == documentType.Name)
             {
                 BusinessLogicException.EnsureUniqueProperty<Division>(existingDocumentType.Name);
             }
+
             if (existingDocumentType.ExecutiveRepairDocNumber == documentType.ExecutiveRepairDocNumber)
             {
                 BusinessLogicException.EnsureUniqueProperty<Division>(existingDocumentType.ExecutiveRepairDocNumber);

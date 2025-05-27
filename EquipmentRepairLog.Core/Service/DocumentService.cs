@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Exceptions.AppException;
@@ -12,7 +12,7 @@ namespace EquipmentRepairLog.Core.Service
         {
             BusinessLogicException.ThrowIfNull(documents);
 
-            if (!documents.Any())
+            if (documents.Count == 0)
             {
                 throw new BusinessLogicException("The document does not contain any item.");
             }
@@ -34,7 +34,6 @@ namespace EquipmentRepairLog.Core.Service
                 await dbContext.Documents.AddRangeAsync(documents, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
-
             },
             cancellationToken);
         }
@@ -110,6 +109,7 @@ namespace EquipmentRepairLog.Core.Service
             {
                 throw new NotFoundException($"Document with registration number \"{registrationNumberDoc}\" not found.");
             }
+
             if (docByRegistrationNumber.ExecuteRepairDocuments != null && docByRegistrationNumber.ExecuteRepairDocuments.Count == 0)
             {
                 throw new BusinessLogicException($"Document with registration number {registrationNumberDoc} does not belong to any set of executive repair documentation.");

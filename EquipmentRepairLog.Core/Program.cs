@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Data.Users;
@@ -7,7 +7,7 @@ using EquipmentRepairLog.Core.FactoryData;
 using EquipmentRepairLog.Core.Service;
 using Microsoft.Extensions.DependencyInjection;
 
-var db = await new DbContextFactory().Create();
+using var db = await new DbContextFactory().CreateAsync();
 var documentService = new DocumentService(db);
 
 var divisionExe = new DivisionFactory().Create("Отдел под", "ОППР", 0);
@@ -48,7 +48,7 @@ db.Perfomers.Add(perfomer);
 var repairFacility = new RepairFacility() { Number = 1, Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1" };
 db.RepairFacilities.Add(repairFacility);
 
-db.SaveChanges();
+await db.SaveChangesAsync();
 
 var docFirst = new Document()
 {
@@ -130,4 +130,4 @@ await equipmentService.AddRangeEquipment([kksNewFirst, kksNewSecond]);
 
 static IServiceCollection AppServiceDI()
             => new ServiceCollection().AddSingleton<AppDbContext>()
-                                      .AddScoped(e => e.GetRequiredService<DbContextFactory>().Create());
+                                      .AddScoped(e => e.GetRequiredService<DbContextFactory>().CreateAsync());

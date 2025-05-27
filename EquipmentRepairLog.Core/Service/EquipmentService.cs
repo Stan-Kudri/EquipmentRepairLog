@@ -1,9 +1,9 @@
-﻿using EquipmentRepairLog.Core.Data.EquipmentModel;
+using System.Data.Entity;
+using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.ValidationData;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Extension;
-using System.Data.Entity;
 
 namespace EquipmentRepairLog.Core.Service
 {
@@ -23,6 +23,7 @@ namespace EquipmentRepairLog.Core.Service
             {
                 throw new BusinessLogicException($"Error naming:{Environment.NewLine},{resultKKS.ErrorListMassage()}");
             }
+
             foreach (var addItem in resultKKS.Where(e => e.HasError == false).Select(e => e.Value))
             {
                 if (addItem == null)
@@ -56,6 +57,7 @@ namespace EquipmentRepairLog.Core.Service
                 {
                     throw new BusinessLogicException($"Error naming:{Environment.NewLine},{resultKKS.ErrorListMassage()}");
                 }
+
                 foreach (var addItem in resultKKS.Where(e => e.HasError == false).Select(e => e.Value))
                 {
                     if (addItem == null)
@@ -165,7 +167,6 @@ namespace EquipmentRepairLog.Core.Service
                 return DBNull.Value;
             },
             cancellationToken);
-
         }
     }
 }

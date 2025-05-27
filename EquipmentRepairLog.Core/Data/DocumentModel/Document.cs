@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.EquipmentModel;
+using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
 
 namespace EquipmentRepairLog.Core.Data.DocumentModel
@@ -76,6 +76,5 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
             => document is not null && document.RegistrationNumber == RegistrationNumber && document.OrdinalNumber == OrdinalNumber && document.DocumentTypeId == DocumentTypeId;
 
         public override int GetHashCode() => HashCode.Combine(RegistrationNumber, OrdinalNumber, DocumentTypeId);
-
     }
 }
