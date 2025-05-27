@@ -27,7 +27,7 @@ db.Divisions.Add(division);
 var docTypeFirst = new DocumentType()
 {
     Name = "Акт выполненных работ",
-    IsOnlyTypeDocInRepairLog = true,
+    IsOnlyTypeDocInERD = true,
     ExecutiveRepairDocNumber = 24,
     Abbreviation = "АВР"
 };
@@ -36,7 +36,7 @@ db.DocumentTypes.Add(docTypeFirst);
 var docTypeSecond = new DocumentType()
 {
     Name = "Ведомость выполненных работ",
-    IsOnlyTypeDocInRepairLog = false,
+    IsOnlyTypeDocInERD = false,
     ExecutiveRepairDocNumber = 29,
     Abbreviation = "ВВР"
 };

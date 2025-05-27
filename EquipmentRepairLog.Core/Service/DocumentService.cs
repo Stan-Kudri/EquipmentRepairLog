@@ -50,11 +50,11 @@ namespace EquipmentRepairLog.Core.Service
 
             await dbContext.RunTransactionAsync(async _ =>
             {
-                //Создание нового комплекта документа(ов)
+                // Создание нового комплекта документа(ов)
                 var executeRepairDocument = new ExecuteRepairDocument();
                 await dbContext.ExecuteRepairDocuments.AddAsync(executeRepairDocument, cancellationToken);
 
-                //Добавление документа и связь его с комплектом документа(ов)
+                // Добавление документа и связь его с комплектом документа(ов)
                 document.ExecuteRepairDocuments.Add(executeRepairDocument);
                 await dbContext.Documents.AddAsync(document, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);

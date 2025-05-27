@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Exceptions;
 
 namespace EquipmentRepairLog.Core.FactoryData
@@ -8,12 +8,18 @@ namespace EquipmentRepairLog.Core.FactoryData
         public const byte MaxExcutiveRepairDocNumber = 100;
         public const byte MinEcutiveRepairDocNumber = 1;
 
-        public DocumentType Create(string name, string abbreviation, byte executiveRepairDocNumber, bool isOnlyTypeDocInRepairLog)
+        public DocumentType Create(string name, string abbreviation, byte executiveRepairDocNumber, bool isOnlyTypeDocInERD)
         {
             BusinessLogicException.EnsureRange<Division>(executiveRepairDocNumber, nameof(executiveRepairDocNumber), MinEcutiveRepairDocNumber, MaxExcutiveRepairDocNumber);
             var result = EnsureValid(name, abbreviation);
 
-            return new DocumentType() { Name = result.Name, Abbreviation = result.Abbreviation, ExecutiveRepairDocNumber = executiveRepairDocNumber, IsOnlyTypeDocInRepairLog = isOnlyTypeDocInRepairLog };
+            return new DocumentType()
+            {
+                Name = result.Name,
+                Abbreviation = result.Abbreviation,
+                ExecutiveRepairDocNumber = executiveRepairDocNumber,
+                IsOnlyTypeDocInERD = isOnlyTypeDocInERD,
+            };
         }
     }
 }

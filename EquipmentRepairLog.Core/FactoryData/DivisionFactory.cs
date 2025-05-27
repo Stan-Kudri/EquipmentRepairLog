@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Exceptions;
 
 namespace EquipmentRepairLog.Core.FactoryData
@@ -13,7 +13,12 @@ namespace EquipmentRepairLog.Core.FactoryData
             BusinessLogicException.EnsureRange<Division>(number, nameof(number), MinNumberDivision, MaxNumberDivision);
             var result = EnsureValid(name, abbreviation);
 
-            return new Division() { Name = result.Name, Abbreviation = result.Abbreviation, Number = number };
+            return new Division()
+            {
+                Name = result.Name,
+                Abbreviation = result.Abbreviation,
+                Number = number,
+            };
         }
     }
 }
