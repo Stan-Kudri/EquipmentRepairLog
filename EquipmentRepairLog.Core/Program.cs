@@ -29,7 +29,7 @@ var docTypeFirst = new DocumentType()
     Name = "Акт выполненных работ",
     IsOnlyTypeDocInERD = true,
     ExecutiveRepairDocNumber = 24,
-    Abbreviation = "АВР"
+    Abbreviation = "АВР",
 };
 db.DocumentTypes.Add(docTypeFirst);
 
@@ -38,7 +38,7 @@ var docTypeSecond = new DocumentType()
     Name = "Ведомость выполненных работ",
     IsOnlyTypeDocInERD = false,
     ExecutiveRepairDocNumber = 29,
-    Abbreviation = "ВВР"
+    Abbreviation = "ВВР",
 };
 db.DocumentTypes.Add(docTypeSecond);
 
@@ -50,14 +50,12 @@ db.RepairFacilities.Add(repairFacility);
 
 await db.SaveChangesAsync();
 
-var docFirst = new Document()
+var docFirst = new DocumentModelCreater()
 {
     Division = division,
     DocumentType = docTypeFirst,
-    OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "FirstNumber",
     KKSEquipment = new List<KKSEquipment>() { kks },
     Perfomers = new List<Perfomer>() { perfomer },
     DivisionId = division.Id,
@@ -65,14 +63,12 @@ var docFirst = new Document()
     RepairFacilityId = repairFacility.Id,
     RegistrationDate = DateTime.Now,
 };
-var docSecond = new Document()
+var docSecond = new DocumentModelCreater()
 {
     Division = division,
     DocumentType = docTypeSecond,
-    OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "SecondNumber",
     KKSEquipment = new List<KKSEquipment>() { kks },
     Perfomers = new List<Perfomer>() { perfomer },
     DivisionId = division.Id,
@@ -81,7 +77,7 @@ var docSecond = new Document()
     RegistrationDate = DateTime.Now,
 };
 
-await documentService.AddAllDocumentsAsync(new List<Document> { docFirst, docSecond });
+await documentService.AddAllDocumentsAsync(new List<DocumentModelCreater> { docFirst, docSecond });
 
 var userService = new UserService(db, new UserValidator());
 
@@ -99,7 +95,7 @@ var kksNewFirst = new KKSEquipment()
     EquipmentType = equipmentTypeNewFirst,
     KKS = "20KAA22AA345 -- 20KAA21AA345 20KAA22AA345",
     EquipmentId = equipmentNewFirst.Id,
-    EquipmentTypeId = equipmentTypeNewFirst.Id
+    EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
 var kksNewSecond = new KKSEquipment()
 {
@@ -107,17 +103,15 @@ var kksNewSecond = new KKSEquipment()
     EquipmentType = equipmentTypeNewFirst,
     KKS = "20KAA11AA345 -- 20KAA21AA335 20KAA22AA325",
     EquipmentId = equipmentNewFirst.Id,
-    EquipmentTypeId = equipmentTypeNewFirst.Id
+    EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
 
-var docNewFirst = new Document()
+var docNewFirst = new DocumentModelCreater()
 {
     Division = division,
     DocumentType = docTypeSecond,
-    OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "SecondNumber",
     KKSEquipment = new List<KKSEquipment>() { kksNewFirst, kksNewSecond },
     Perfomers = new List<Perfomer>() { perfomer },
     DivisionId = division.Id,

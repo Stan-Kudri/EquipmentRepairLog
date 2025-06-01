@@ -8,18 +8,18 @@ namespace EquipmentRepairLog.Core.Service
 {
     public class DocumentService(AppDbContext dbContext)
     {
-        public async Task AddAllDocumentsAsync(List<Document> documents, CancellationToken cancellationToken = default)
+        public async Task AddAllDocumentsAsync(List<DocumentModelCreater> documentsCreator, CancellationToken cancellationToken = default)
         {
-            BusinessLogicException.ThrowIfNull(documents);
+            BusinessLogicException.ThrowIfNull(documentsCreator);
 
-            if (documents.Count == 0)
+            if (documentsCreator.Count == 0)
             {
                 throw new BusinessLogicException("The document does not contain any item.");
             }
 
-            if (!IsFreePropertyDocuments(documents))
+            if (!IsFreePropertyDocuments(documentsCreator))
             {
-                var invalidDocuments = documents.Where(document => dbContext.Documents.FirstOrDefault(e
+                var invalidDocuments = documentsCreator.Where(document => dbContext.Documents.FirstOrDefault(e
                                                 => (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType)
                                                 || e.RegistrationNumber == document.RegistrationNumber) == null).Select(document => new { document.RegistrationNumber }).ToList();
                 throw new BusinessLogicException($"The document with registration number \"{string.Join(';', invalidDocuments.Select(e => e.RegistrationNumber))}\" is already taken.");
@@ -30,7 +30,16 @@ namespace EquipmentRepairLog.Core.Service
                 var executeRepairDocument = new ExecuteRepairDocument();
                 await dbContext.ExecuteRepairDocuments.AddAsync(executeRepairDocument, cancellationToken);
 
-                documents.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
+                foreach (var item in documentsCreator)
+                {
+                    var numberDoc = await GetRegistrationNumber(item, cancellationToken);
+                    item.RegistrationNumber = numberDoc.RegistrationNumber;
+                    item.OrdinalNumber = numberDoc.OrdinalNumber;
+                }
+
+                documentsCreator.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
+                var documents = documentsCreator.Select(d => d.GetDocument()).ToList();
+
                 await dbContext.Documents.AddRangeAsync(documents, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
@@ -38,14 +47,14 @@ namespace EquipmentRepairLog.Core.Service
             cancellationToken);
         }
 
-        public async Task AddDocument(Document document, CancellationToken cancellationToken = default)
+        public async Task AddDocument(DocumentModelCreater documentsCreator, CancellationToken cancellationToken = default)
         {
-            BusinessLogicException.ThrowIfNull(document);
-            BusinessLogicException.ThrowIfNull(document.ExecuteRepairDocuments);
+            BusinessLogicException.ThrowIfNull(documentsCreator);
+            BusinessLogicException.ThrowIfNull(documentsCreator.ExecuteRepairDocuments);
 
-            if (!IsFreePropertyDocument(document))
+            if (!IsFreePropertyDocument(documentsCreator))
             {
-                throw new BusinessLogicException($"The document with registration number \"{document.RegistrationNumber}\" and order number \"{document.OrdinalNumber}\" is already taken.");
+                throw new BusinessLogicException($"The document with registration number \"{documentsCreator.RegistrationNumber}\" and order number \"{documentsCreator.OrdinalNumber}\" is already taken.");
             }
 
             await dbContext.RunTransactionAsync(async _ =>
@@ -55,7 +64,12 @@ namespace EquipmentRepairLog.Core.Service
                 await dbContext.ExecuteRepairDocuments.AddAsync(executeRepairDocument, cancellationToken);
 
                 // Добавление документа и связь его с комплектом документа(ов)
-                document.ExecuteRepairDocuments.Add(executeRepairDocument);
+                documentsCreator.ExecuteRepairDocuments.Add(executeRepairDocument);
+                var numberDoc = await GetRegistrationNumber(documentsCreator, cancellationToken);
+                documentsCreator.RegistrationNumber = numberDoc.RegistrationNumber;
+                documentsCreator.OrdinalNumber = numberDoc.OrdinalNumber;
+                var document = documentsCreator.GetDocument();
+
                 await dbContext.Documents.AddAsync(document, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
@@ -63,14 +77,14 @@ namespace EquipmentRepairLog.Core.Service
             cancellationToken);
         }
 
-        public async Task AddDocumentFromERDAsync(Document document, string registrationNumberDoc, CancellationToken cancellationToken = default)
+        public async Task AddDocumentFromERDAsync(DocumentModelCreater documentsCreator, string registrationNumberDoc, CancellationToken cancellationToken = default)
         {
-            BusinessLogicException.ThrowIfNull(document);
-            BusinessLogicException.ThrowIfNull(document.ExecuteRepairDocuments);
+            BusinessLogicException.ThrowIfNull(documentsCreator);
+            BusinessLogicException.ThrowIfNull(documentsCreator.ExecuteRepairDocuments);
 
-            if (!IsFreePropertyDocument(document))
+            if (!IsFreePropertyDocument(documentsCreator))
             {
-                throw new BusinessLogicException($"The document with registration number \"{document.RegistrationNumber}\" and order number \"{document.OrdinalNumber}\" is already taken.");
+                throw new BusinessLogicException($"The document with registration number \"{documentsCreator.RegistrationNumber}\" and order number \"{documentsCreator.OrdinalNumber}\" is already taken.");
             }
 
             var docByRegistrationNumber = dbContext.Documents.Include(e => e.ExecuteRepairDocuments).FirstOrDefault(e => e.RegistrationNumber == registrationNumberDoc)
@@ -81,7 +95,12 @@ namespace EquipmentRepairLog.Core.Service
 
             await dbContext.RunTransactionAsync(async _ =>
             {
-                document.ExecuteRepairDocuments.Add(executeRepairDoc);
+                var numberDoc = await GetRegistrationNumber(documentsCreator, cancellationToken);
+                documentsCreator.RegistrationNumber = numberDoc.RegistrationNumber;
+                documentsCreator.OrdinalNumber = numberDoc.OrdinalNumber;
+                documentsCreator.ExecuteRepairDocuments.Add(executeRepairDoc);
+                var document = documentsCreator.GetDocument();
+
                 await dbContext.Documents.AddAsync(document, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
@@ -132,13 +151,43 @@ namespace EquipmentRepairLog.Core.Service
             cancellationToken);
         }
 
-        private bool IsFreePropertyDocuments(List<Document> documents)
+        private bool IsFreePropertyDocuments(List<DocumentModelCreater> documents)
         {
             var registrationNumber = documents.Select(e => e.RegistrationNumber);
             return !dbContext.Documents.Include(e => e.DocumentType).Any(document => registrationNumber.Contains(document.RegistrationNumber));
         }
 
-        private bool IsFreePropertyDocument(Document document)
+        private bool IsFreePropertyDocument(DocumentModelCreater document)
             => !dbContext.Documents.Include(e => e.DocumentType).Any(e => e.RegistrationNumber == document.RegistrationNumber);
+
+        private async Task<(int OrdinalNumber, string RegistrationNumber)> GetRegistrationNumber(DocumentModelCreater document, CancellationToken cancellationToken)
+        {
+            var ordinalNumber = document.OrdinalNumber = await GetOrdinalNumber(document);
+
+            var divisionNumber = (await dbContext.Divisions.FirstOrDefaultAsync(e => e.Id == document.DivisionId, cancellationToken))?.Number
+                                    ?? throw new BusinessLogicException("Error. The division ID not found.");
+
+            var repairFacilityNumber = (await dbContext.RepairFacilities.FirstOrDefaultAsync(e => e.Id == document.RepairFacilityId, cancellationToken))?.Number
+                                        ?? throw new BusinessLogicException("Error. The repair facility ID not found.");
+
+            var typeDocAbbreviation = (await dbContext.DocumentTypes.FirstOrDefaultAsync(e => e.Id == document.DocumentTypeId, cancellationToken))?.Abbreviation
+                                        ?? throw new BusinessLogicException("Error. The repair facility ID not found.");
+
+            var year = document.RegistrationDate.Year;
+
+            var registrationNumber = $"{ordinalNumber}/{divisionNumber}{typeDocAbbreviation}({repairFacilityNumber})-{year}";
+            return (ordinalNumber, registrationNumber);
+        }
+
+        private async Task<int> GetOrdinalNumber(DocumentModelCreater document)
+        {
+            var ordinalNumber = await dbContext.Documents.Where(e => e.DivisionId == document.DivisionId
+                                                                     && e.RegistrationDate.Year == document.RegistrationDate.Year)
+                                                         .OrderByDescending(e => e.OrdinalNumber)
+                                                         .Select(e => e.OrdinalNumber)
+                                                         .FirstOrDefaultAsync();
+
+            return ordinalNumber == 0 ? 1 : ordinalNumber + 1;
+        }
     }
 }

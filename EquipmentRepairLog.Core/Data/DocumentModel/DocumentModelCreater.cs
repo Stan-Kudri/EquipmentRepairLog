@@ -3,7 +3,7 @@ using EquipmentRepairLog.Core.Data.StandardModel;
 
 namespace EquipmentRepairLog.Core.Data.DocumentModel
 {
-    public class Document : Entity
+    public class DocumentModelCreater
     {
         /// <summary>
         /// Дата регистрации
@@ -24,12 +24,12 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// <summary>
         /// Порядковый номер документа по типу и году регистрации
         /// </summary>
-        public required int OrdinalNumber { get; set; } = 0;
+        public int OrdinalNumber { get; set; } = 0;
 
         /// <summary>
         /// Регистрационный номер документа
         /// </summary>
-        public required string RegistrationNumber { get; set; } = string.Empty;
+        public string RegistrationNumber { get; set; } = string.Empty;
 
         /// <summary>
         /// Примечание
@@ -72,9 +72,20 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// </summary>
         public List<ExecuteRepairDocument>? ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
 
-        public bool Equals(Document? document)
-            => document is not null && document.RegistrationNumber == RegistrationNumber && document.OrdinalNumber == OrdinalNumber && document.DocumentTypeId == DocumentTypeId;
-
-        public override int GetHashCode() => HashCode.Combine(RegistrationNumber, OrdinalNumber, DocumentTypeId);
+        public Document GetDocument() => new Document()
+        {
+            Division = Division,
+            DocumentType = DocumentType,
+            OrdinalNumber = OrdinalNumber,
+            RepairFacility = RepairFacility,
+            RepairDate = RepairDate,
+            RegistrationNumber = RegistrationNumber,
+            KKSEquipment = KKSEquipment,
+            Perfomers = Perfomers,
+            DivisionId = DivisionId,
+            DocumentTypeId = DocumentTypeId,
+            RepairFacilityId = RepairFacilityId,
+            RegistrationDate = RegistrationDate,
+        };
     }
 }
