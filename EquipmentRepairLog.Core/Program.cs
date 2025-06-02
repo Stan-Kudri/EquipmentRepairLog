@@ -8,7 +8,8 @@ using EquipmentRepairLog.Core.Service;
 using Microsoft.Extensions.DependencyInjection;
 
 using var db = await new DbContextFactory().CreateAsync();
-var documentService = new DocumentService(db);
+var documentFactory = new DocumentFactroy(db);
+var documentService = new DocumentService(db, documentFactory);
 
 var divisionExe = new DivisionFactory().Create("Отдел под", "ОППР", 0);
 
@@ -50,7 +51,7 @@ db.RepairFacilities.Add(repairFacility);
 
 await db.SaveChangesAsync();
 
-var docFirst = new DocumentModelCreater()
+var docFirst = new DocumentModelCreator()
 {
     Division = division,
     DocumentType = docTypeFirst,
@@ -63,7 +64,7 @@ var docFirst = new DocumentModelCreater()
     RepairFacilityId = repairFacility.Id,
     RegistrationDate = DateTime.Now,
 };
-var docSecond = new DocumentModelCreater()
+var docSecond = new DocumentModelCreator()
 {
     Division = division,
     DocumentType = docTypeSecond,
@@ -77,7 +78,7 @@ var docSecond = new DocumentModelCreater()
     RegistrationDate = DateTime.Now,
 };
 
-await documentService.AddAllDocumentsAsync(new List<DocumentModelCreater> { docFirst, docSecond });
+await documentService.AddAllDocumentsAsync(new List<DocumentModelCreator> { docFirst, docSecond });
 
 var userService = new UserService(db, new UserValidator());
 
@@ -106,7 +107,7 @@ var kksNewSecond = new KKSEquipment()
     EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
 
-var docNewFirst = new DocumentModelCreater()
+var docNewFirst = new DocumentModelCreator()
 {
     Division = division,
     DocumentType = docTypeSecond,
