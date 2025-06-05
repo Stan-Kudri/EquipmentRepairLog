@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EquipmentRepairLog.Core.Exceptions
 {
@@ -48,7 +48,6 @@ namespace EquipmentRepairLog.Core.Exceptions
             {
                 throw new BusinessLogicException("The passed string is empty.");
             }
-
         }
 
         public static void EnsureUniqueProperty<T>(byte property) => ThrowUniquePropertyError<T>(property);

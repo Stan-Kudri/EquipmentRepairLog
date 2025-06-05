@@ -1,6 +1,6 @@
-﻿using EquipmentRepairLog.Core.Data;
-using EquipmentRepairLog.Core.Exceptions;
 using System.Text;
+using EquipmentRepairLog.Core.Data;
+using EquipmentRepairLog.Core.Exceptions;
 
 namespace EquipmentRepairLog.Core.FactoryData
 {
@@ -28,6 +28,11 @@ namespace EquipmentRepairLog.Core.FactoryData
         }
 
         protected string NormalizeString(string str)
-            => new StringBuilder(str).Replace(" ", "").Replace("-", "").Replace(".", "").Replace(",", "").Replace("/", "").ToString();
+            => new StringBuilder(str).Replace(" ", string.Empty)
+                                     .Replace("-", string.Empty)
+                                     .Replace(".", string.Empty)
+                                     .Replace(",", string.Empty)
+                                     .Replace("/", string.Empty)
+                                     .ToString();
     }
 }

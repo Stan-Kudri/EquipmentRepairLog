@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Exceptions.AppException;
@@ -29,10 +29,12 @@ namespace EquipmentRepairLog.Core.Service
             {
                 BusinessLogicException.EnsureUniqueProperty<Division>(existingDivision.Abbreviation);
             }
+
             if (existingDivision.Name == division.Name)
             {
                 BusinessLogicException.EnsureUniqueProperty<Division>(existingDivision.Name);
             }
+
             if (existingDivision.Number == division.Number)
             {
                 BusinessLogicException.EnsureUniqueProperty<Division>(existingDivision.Number);

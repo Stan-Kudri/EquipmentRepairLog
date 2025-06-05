@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Exceptions.AppException;
@@ -27,6 +27,7 @@ namespace EquipmentRepairLog.Core.Service
             {
                 BusinessLogicException.EnsureUniqueProperty<Division>(existingPerfomer.Abbreviation);
             }
+
             if (existingPerfomer.Name == perfomer.Name)
             {
                 BusinessLogicException.EnsureUniqueProperty<Division>(existingPerfomer.Name);
