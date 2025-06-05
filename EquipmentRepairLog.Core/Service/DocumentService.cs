@@ -12,6 +12,13 @@ namespace EquipmentRepairLog.Core.Service
         {
             await dbContext.RunTransactionAsync(async _ =>
             {
+                // Создание нового комплекта документа(ов)
+                var executeRepairDocument = await CreateERDAsync(cancellationToken);
+
+                // Добавление документа и связь его с комплектом документа(ов)
+                documentsCreator.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
+
+                // Создание документов для добавления в БД
                 var documents = await documentFactroy.GetListDocumentAsync(documentsCreator, cancellationToken);
                 await dbContext.Documents.AddRangeAsync(documents, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
@@ -24,6 +31,13 @@ namespace EquipmentRepairLog.Core.Service
         {
             await dbContext.RunTransactionAsync(async _ =>
             {
+                // Создание нового комплекта документа(ов)
+                var executeRepairDocument = await CreateERDAsync(cancellationToken);
+
+                // Добавление документа и связь его с комплектом документа(ов)
+                documentsCreator.ExecuteRepairDocuments?.Add(executeRepairDocument);
+
+                // Создание документа для добавления в БД
                 var document = await documentFactroy.GetDocumentAsync(documentsCreator, cancellationToken);
                 await dbContext.Documents.AddAsync(document, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
@@ -63,6 +77,7 @@ namespace EquipmentRepairLog.Core.Service
 
             await dbContext.RunTransactionAsync(async _ =>
             {
+                // Получение комплекта документов для удаления по регистрационному номеру одного документа
                 var documents = await documentFactroy.GetRemoveDocsByRegistrationNumberAsync(registrationNumberDoc, cancellationToken);
 
                 dbContext.Documents.RemoveRange(documents);
@@ -73,5 +88,11 @@ namespace EquipmentRepairLog.Core.Service
             },
             cancellationToken);
         }
+
+        private async Task<ExecuteRepairDocument> CreateERDAsync(CancellationToken cancellationToken = default)
+            => (await dbContext.ExecuteRepairDocuments.AddAsync(
+                                                                new ExecuteRepairDocument(),
+                                                                cancellationToken)
+                                                                ).Entity;
     }
 }

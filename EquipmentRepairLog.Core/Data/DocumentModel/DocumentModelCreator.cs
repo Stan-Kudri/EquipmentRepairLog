@@ -70,7 +70,7 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// <summary>
         /// Список комплектов связанных с документом
         /// </summary>
-        public List<ExecuteRepairDocument>? ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
+        public List<ExecuteRepairDocument> ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
 
         public void SetNumberDocument(int ordinalNumber, string registrationNumber)
         {
@@ -92,6 +92,7 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
             DocumentTypeId = DocumentTypeId,
             RepairFacilityId = RepairFacilityId,
             RegistrationDate = RegistrationDate,
+            ExecuteRepairDocuments = ExecuteRepairDocuments,
         };
     }
 }

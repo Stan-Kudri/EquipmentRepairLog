@@ -70,7 +70,7 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// <summary>
         /// Список комплектов связанных с документом
         /// </summary>
-        public List<ExecuteRepairDocument>? ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
+        public required List<ExecuteRepairDocument> ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
 
         public bool Equals(Document? document)
             => document is not null && document.RegistrationNumber == RegistrationNumber && document.OrdinalNumber == OrdinalNumber && document.DocumentTypeId == DocumentTypeId;

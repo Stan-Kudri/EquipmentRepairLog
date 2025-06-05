@@ -17,8 +17,6 @@ namespace EquipmentRepairLog.Core.FactoryData
                 throw new BusinessLogicException("The document does not contain any item.");
             }
 
-            var executeRepairDocument = (await dbContext.ExecuteRepairDocuments.AddAsync(new ExecuteRepairDocument(), cancellationToken)).Entity;
-
             // Создание/установка порядкового и регистрационного номера
             foreach (var item in documentsCreator)
             {
@@ -26,7 +24,6 @@ namespace EquipmentRepairLog.Core.FactoryData
                 item.SetNumberDocument(OrdinalNumber, RegistrationNumber);
             }
 
-            documentsCreator.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
             return documentsCreator.Select(e => e.GetDocument()).ToList();
         }
 
@@ -34,12 +31,6 @@ namespace EquipmentRepairLog.Core.FactoryData
         {
             BusinessLogicException.ThrowIfNull(documentsCreator);
             BusinessLogicException.ThrowIfNull(documentsCreator.ExecuteRepairDocuments);
-
-            // Создание нового комплекта документа(ов)
-            var executeRepairDocument = (await dbContext.ExecuteRepairDocuments.AddAsync(new ExecuteRepairDocument(), cancellationToken)).Entity;
-
-            // Добавление документа и связь его с комплектом документа(ов)
-            documentsCreator.ExecuteRepairDocuments?.Add(executeRepairDocument);
 
             // Создание/установка порядкового и регистрационного номера
             var (OrdinalNumber, RegistrationNumber) = await GetNumberDocument(documentsCreator, cancellationToken);
@@ -73,6 +64,7 @@ namespace EquipmentRepairLog.Core.FactoryData
                                     ?? throw new BusinessLogicException("Empty Execute Repair Document.");
 
             documentsCreator.ExecuteRepairDocuments.Add(executeRepairDoc);
+
             // Создание/установка порядкового и регистрационного номера
             var (OrdinalNumber, RegistrationNumber) = await GetNumberDocument(documentsCreator, cancellationToken);
             documentsCreator.SetNumberDocument(OrdinalNumber, RegistrationNumber);
