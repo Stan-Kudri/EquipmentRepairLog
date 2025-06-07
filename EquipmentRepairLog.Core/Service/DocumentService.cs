@@ -8,7 +8,7 @@ namespace EquipmentRepairLog.Core.Service
 {
     public class DocumentService(AppDbContext dbContext, DocumentFactroy documentFactroy)
     {
-        public async Task AddAllDocumentsAsync(List<DocumentModelCreator> documentsCreator, CancellationToken cancellationToken = default)
+        public async Task AddAllDocumentsAsync(List<DocumentCreateRequest> documentCreateRequests, CancellationToken cancellationToken = default)
         {
             await dbContext.RunTransactionAsync(async _ =>
             {
@@ -16,10 +16,10 @@ namespace EquipmentRepairLog.Core.Service
                 var executeRepairDocument = await CreateERDAsync(cancellationToken);
 
                 // Добавление документа и связь его с комплектом документа(ов)
-                documentsCreator.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
+                documentCreateRequests.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
 
                 // Создание документов для добавления в БД
-                var documents = await documentFactroy.GetListDocumentAsync(documentsCreator, cancellationToken);
+                var documents = await documentFactroy.CreateListDocumentAsync(documentCreateRequests, cancellationToken);
                 await dbContext.Documents.AddRangeAsync(documents, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
@@ -27,7 +27,7 @@ namespace EquipmentRepairLog.Core.Service
             cancellationToken);
         }
 
-        public async Task AddDocument(DocumentModelCreator documentsCreator, CancellationToken cancellationToken = default)
+        public async Task AddDocument(DocumentCreateRequest documentCreateRequest, CancellationToken cancellationToken = default)
         {
             await dbContext.RunTransactionAsync(async _ =>
             {
@@ -35,10 +35,10 @@ namespace EquipmentRepairLog.Core.Service
                 var executeRepairDocument = await CreateERDAsync(cancellationToken);
 
                 // Добавление документа и связь его с комплектом документа(ов)
-                documentsCreator.ExecuteRepairDocuments?.Add(executeRepairDocument);
+                documentCreateRequest.ExecuteRepairDocuments?.Add(executeRepairDocument);
 
                 // Создание документа для добавления в БД
-                var document = await documentFactroy.GetDocumentAsync(documentsCreator, cancellationToken);
+                var document = await documentFactroy.CreateDocumentAsync(documentCreateRequest, cancellationToken);
                 await dbContext.Documents.AddAsync(document, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
@@ -46,11 +46,11 @@ namespace EquipmentRepairLog.Core.Service
             cancellationToken);
         }
 
-        public async Task AddDocumentFromERDAsync(DocumentModelCreator documentsCreator, string registrationNumberDoc, CancellationToken cancellationToken = default)
+        public async Task AddDocumentFromERDAsync(DocumentCreateRequest documentCreateRequest, string registrationNumberDoc, CancellationToken cancellationToken = default)
         {
             await dbContext.RunTransactionAsync(async _ =>
             {
-                var document = await documentFactroy.GetDocumentFromERDAsync(documentsCreator, registrationNumberDoc, cancellationToken);
+                var document = await documentFactroy.CreateDocumentFromERDAsync(documentCreateRequest, registrationNumberDoc, cancellationToken);
                 await dbContext.Documents.AddAsync(document, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
@@ -78,12 +78,12 @@ namespace EquipmentRepairLog.Core.Service
             await dbContext.RunTransactionAsync(async _ =>
             {
                 // Получение комплекта документов для удаления по регистрационному номеру одного документа
-                var documents = await documentFactroy.GetRemoveDocsByRegistrationNumberAsync(registrationNumberDoc, cancellationToken);
+                var executeRepairDocumentsId = executeRepairDocuments.ConvertAll(e => e.Id);
+                var documents = dbContext.ExecuteRepairDocuments.Include(erd => erd.Documents).Where(e => executeRepairDocumentsId.Contains(e.Id)).SelectMany(e => e.Documents).Distinct();
 
                 dbContext.Documents.RemoveRange(documents);
                 dbContext.ExecuteRepairDocuments.RemoveRange(executeRepairDocuments);
                 await dbContext.SaveChangesAsync(cancellationToken);
-
                 return DBNull.Value;
             },
             cancellationToken);

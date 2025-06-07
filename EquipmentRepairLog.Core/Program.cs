@@ -51,7 +51,7 @@ db.RepairFacilities.Add(repairFacility);
 
 await db.SaveChangesAsync();
 
-var docFirst = new DocumentModelCreator()
+var docFirst = new DocumentCreateRequest()
 {
     Division = division,
     DocumentType = docTypeFirst,
@@ -64,7 +64,7 @@ var docFirst = new DocumentModelCreator()
     RepairFacilityId = repairFacility.Id,
     RegistrationDate = DateTime.Now,
 };
-var docSecond = new DocumentModelCreator()
+var docSecond = new DocumentCreateRequest()
 {
     Division = division,
     DocumentType = docTypeSecond,
@@ -78,7 +78,7 @@ var docSecond = new DocumentModelCreator()
     RegistrationDate = DateTime.Now,
 };
 
-await documentService.AddAllDocumentsAsync(new List<DocumentModelCreator> { docFirst, docSecond });
+await documentService.AddAllDocumentsAsync(new List<DocumentCreateRequest> { docFirst, docSecond });
 
 var userService = new UserService(db, new UserValidator());
 
@@ -107,7 +107,7 @@ var kksNewSecond = new KKSEquipment()
     EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
 
-var docNewFirst = new DocumentModelCreator()
+var docNewFirst = new DocumentCreateRequest()
 {
     Division = division,
     DocumentType = docTypeSecond,

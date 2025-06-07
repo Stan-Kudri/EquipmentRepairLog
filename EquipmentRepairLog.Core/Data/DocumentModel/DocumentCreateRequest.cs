@@ -3,7 +3,7 @@ using EquipmentRepairLog.Core.Data.StandardModel;
 
 namespace EquipmentRepairLog.Core.Data.DocumentModel
 {
-    public class DocumentModelCreator
+    public class DocumentCreateRequest
     {
         /// <summary>
         /// Дата регистрации
@@ -20,16 +20,6 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// (Для изменения регистрационного номера после прошедшего срока или до него)
         /// </summary>
         public DateTime? ChangeDateRegistrNumber { get; set; } = null;
-
-        /// <summary>
-        /// Порядковый номер документа по типу и году регистрации
-        /// </summary>
-        public int OrdinalNumber { get; private set; } = 0;
-
-        /// <summary>
-        /// Регистрационный номер документа
-        /// </summary>
-        public string RegistrationNumber { get; private set; } = string.Empty;
 
         /// <summary>
         /// Примечание
@@ -71,28 +61,5 @@ namespace EquipmentRepairLog.Core.Data.DocumentModel
         /// Список комплектов связанных с документом
         /// </summary>
         public List<ExecuteRepairDocument> ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
-
-        public void SetNumberDocument(int ordinalNumber, string registrationNumber)
-        {
-            OrdinalNumber = ordinalNumber;
-            RegistrationNumber = registrationNumber;
-        }
-
-        public Document GetDocument() => new Document()
-        {
-            Division = Division,
-            DocumentType = DocumentType,
-            OrdinalNumber = OrdinalNumber,
-            RepairFacility = RepairFacility,
-            RepairDate = RepairDate,
-            RegistrationNumber = RegistrationNumber,
-            KKSEquipment = KKSEquipment,
-            Perfomers = Perfomers,
-            DivisionId = DivisionId,
-            DocumentTypeId = DocumentTypeId,
-            RepairFacilityId = RepairFacilityId,
-            RegistrationDate = RegistrationDate,
-            ExecuteRepairDocuments = ExecuteRepairDocuments,
-        };
     }
 }

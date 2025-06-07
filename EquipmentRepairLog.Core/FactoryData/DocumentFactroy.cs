@@ -1,4 +1,5 @@
 using EquipmentRepairLog.Core.Data.DocumentModel;
+using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Exceptions.AppException;
@@ -8,93 +9,92 @@ namespace EquipmentRepairLog.Core.FactoryData
 {
     public class DocumentFactroy(AppDbContext dbContext)
     {
-        public async Task<List<Document>> GetListDocumentAsync(List<DocumentModelCreator> documentsCreator, CancellationToken cancellationToken = default)
+        public async Task<List<Document>> CreateListDocumentAsync(List<DocumentCreateRequest> documentCreateRequests, CancellationToken cancellationToken = default)
         {
-            BusinessLogicException.ThrowIfNull(documentsCreator);
+            BusinessLogicException.ThrowIfNull(documentCreateRequests);
 
-            if (documentsCreator.Count == 0)
+            if (documentCreateRequests.Count == 0)
             {
-                throw new BusinessLogicException("The document does not contain any item.");
+                throw new NotFoundException("The document does not contain any item.");
             }
 
+            var result = new List<Document>(documentCreateRequests.Count);
+
             // Создание/установка порядкового и регистрационного номера
-            foreach (var item in documentsCreator)
+            foreach (var item in documentCreateRequests)
             {
-                var (OrdinalNumber, RegistrationNumber) = await GetNumberDocument(item, cancellationToken);
-                item.SetNumberDocument(OrdinalNumber, RegistrationNumber);
+                var document = await CreateDocumentAsync(item, cancellationToken);
+                result.Add(document);
             }
 
-            return documentsCreator.Select(e => e.GetDocument()).ToList();
+            return result;
         }
 
-        public async Task<Document> GetDocumentAsync(DocumentModelCreator documentsCreator, CancellationToken cancellationToken = default)
+        public async Task<Document> CreateDocumentAsync(DocumentCreateRequest documentCreateRequest, CancellationToken cancellationToken = default)
         {
-            BusinessLogicException.ThrowIfNull(documentsCreator);
-            BusinessLogicException.ThrowIfNull(documentsCreator.ExecuteRepairDocuments);
+            BusinessLogicException.ThrowIfNull(documentCreateRequest);
+            BusinessLogicException.ThrowIfNull(documentCreateRequest.ExecuteRepairDocuments);
 
             // Создание/установка порядкового и регистрационного номера
-            var (OrdinalNumber, RegistrationNumber) = await GetNumberDocument(documentsCreator, cancellationToken);
-            documentsCreator.SetNumberDocument(OrdinalNumber, RegistrationNumber);
+            var (OrdinalNumber, RegistrationNumber) = await GetNumberDocument(documentCreateRequest, cancellationToken);
 
-            return documentsCreator.GetDocument();
+            return new Document()
+            {
+                Division = documentCreateRequest.Division,
+                DocumentType = documentCreateRequest.DocumentType,
+                RepairFacility = documentCreateRequest.RepairFacility,
+                RepairDate = documentCreateRequest.RepairDate,
+                KKSEquipment = documentCreateRequest.KKSEquipment,
+                Perfomers = documentCreateRequest.Perfomers,
+                DivisionId = documentCreateRequest.DivisionId,
+                DocumentTypeId = documentCreateRequest.DocumentTypeId,
+                RepairFacilityId = documentCreateRequest.RepairFacilityId,
+                RegistrationDate = documentCreateRequest.RegistrationDate,
+                ExecuteRepairDocuments = documentCreateRequest.ExecuteRepairDocuments,
+                OrdinalNumber = OrdinalNumber,
+                RegistrationNumber = RegistrationNumber,
+            };
         }
 
-        public async Task<IQueryable<Document>> GetRemoveDocsByRegistrationNumberAsync(string registrationNumberDoc, CancellationToken cancellationToken = default)
+        public async Task<Document> CreateDocumentFromERDAsync(DocumentCreateRequest documentCreateRequest, string registrationNumberDoc, CancellationToken cancellationToken = default)
         {
-            var executeRepairDocuments = await dbContext.Documents.Include(e => e.ExecuteRepairDocuments)
-                                                                  .Where(e => e.RegistrationNumber == registrationNumberDoc)
-                                                                  .Select(e => e.ExecuteRepairDocuments)
-                                                                  .FirstOrDefaultAsync(cancellationToken)
-                                                                  ?? throw new NotFoundException($"Document with registration number \"{registrationNumberDoc}\" not found.");
+            BusinessLogicException.ThrowIfNull(documentCreateRequest);
+            BusinessLogicException.ThrowIfNull(documentCreateRequest.ExecuteRepairDocuments);
 
-            var executeRepairDocumentsId = executeRepairDocuments.ConvertAll(e => e.Id);
-            var documents = dbContext.ExecuteRepairDocuments.Include(erd => erd.Documents).Where(e => executeRepairDocumentsId.Contains(e.Id)).SelectMany(e => e.Documents).Distinct();
-            return documents;
-        }
-
-        public async Task<Document> GetDocumentFromERDAsync(DocumentModelCreator documentsCreator, string registrationNumberDoc, CancellationToken cancellationToken = default)
-        {
-            BusinessLogicException.ThrowIfNull(documentsCreator);
-            BusinessLogicException.ThrowIfNull(documentsCreator.ExecuteRepairDocuments);
-
-            var docByRegistrationNumber = dbContext.Documents.Include(e => e.ExecuteRepairDocuments).FirstOrDefault(e => e.RegistrationNumber == registrationNumberDoc)
-                                                                    ?? throw new BusinessLogicException($"Registration number {registrationNumberDoc} not found.");
+            var docByRegistrationNumber = await dbContext.Documents.Include(e => e.ExecuteRepairDocuments).FirstOrDefaultAsync(e => e.RegistrationNumber == registrationNumberDoc, cancellationToken)
+                                                                    ?? throw new NotFoundException($"Registration number {registrationNumberDoc} not found.");
 
             var executeRepairDoc = docByRegistrationNumber?.ExecuteRepairDocuments?.FirstOrDefault()
-                                    ?? throw new BusinessLogicException("Empty Execute Repair Document.");
+                                    ?? throw new NotFoundException("Empty Execute Repair Document.");
 
-            documentsCreator.ExecuteRepairDocuments.Add(executeRepairDoc);
+            documentCreateRequest.ExecuteRepairDocuments.Add(executeRepairDoc);
 
-            // Создание/установка порядкового и регистрационного номера
-            var (OrdinalNumber, RegistrationNumber) = await GetNumberDocument(documentsCreator, cancellationToken);
-            documentsCreator.SetNumberDocument(OrdinalNumber, RegistrationNumber);
-
-            return documentsCreator.GetDocument();
+            return await CreateDocumentAsync(documentCreateRequest, cancellationToken);
         }
 
-        private async Task<(int OrdinalNumber, string RegistrationNumber)> GetNumberDocument(DocumentModelCreator document, CancellationToken cancellationToken)
+        private async Task<(int OrdinalNumber, string RegistrationNumber)> GetNumberDocument(DocumentCreateRequest documentCreateRequest, CancellationToken cancellationToken)
         {
-            var divisionNumber = await dbContext.Divisions.Where(e => e.Id == document.DivisionId).Select(e => (byte?)e.Number).FirstOrDefaultAsync(cancellationToken)
-                                    ?? throw new NotFoundException("Error. The division ID not found.");
+            var divisionNumber = await dbContext.Divisions.Where(e => e.Id == documentCreateRequest.DivisionId).Select(e => (byte?)e.Number).FirstOrDefaultAsync(cancellationToken)
+                                    ?? throw NotFoundException.Create<Division, Guid>(nameof(documentCreateRequest.DivisionId), documentCreateRequest.DivisionId);
 
-            var repairFacilityNumber = await dbContext.RepairFacilities.Where(e => e.Id == document.RepairFacilityId).Select(e => (byte?)e.Number).FirstOrDefaultAsync(cancellationToken)
-                                        ?? throw new NotFoundException("Error. The repair facility ID not found.");
+            var repairFacilityNumber = await dbContext.RepairFacilities.Where(e => e.Id == documentCreateRequest.RepairFacilityId).Select(e => (byte?)e.Number).FirstOrDefaultAsync(cancellationToken)
+                                        ?? throw NotFoundException.Create<RepairFacility, Guid>(nameof(documentCreateRequest.RepairFacilityId), documentCreateRequest.RepairFacilityId);
 
-            var typeDocAbbreviation = await dbContext.DocumentTypes.Where(e => e.Id == document.DocumentTypeId).Select(e => e.Abbreviation).FirstOrDefaultAsync(cancellationToken)
-                                        ?? throw new NotFoundException("Error. The document type ID not found.");
+            var typeDocAbbreviation = await dbContext.DocumentTypes.Where(e => e.Id == documentCreateRequest.DocumentTypeId).Select(e => e.Abbreviation).FirstOrDefaultAsync(cancellationToken)
+                                        ?? throw NotFoundException.Create<DocumentType, Guid>(nameof(documentCreateRequest.DocumentTypeId), documentCreateRequest.DocumentTypeId);
 
-            var ordinalNumber = await GetOrdinalNumberAsync(document, cancellationToken);
+            var ordinalNumber = await GetOrdinalNumberAsync(documentCreateRequest, cancellationToken);
 
-            var year = document.RegistrationDate.Year;
+            var year = documentCreateRequest.RegistrationDate.Year;
 
             var registrationNumber = $"{ordinalNumber}/{divisionNumber}{typeDocAbbreviation}({repairFacilityNumber})-{year}";
             return (ordinalNumber, registrationNumber);
         }
 
-        private async Task<int> GetOrdinalNumberAsync(DocumentModelCreator document, CancellationToken cancellationToken)
+        private async Task<int> GetOrdinalNumberAsync(DocumentCreateRequest documentCreateRequest, CancellationToken cancellationToken)
         {
-            var ordinalNumber = await dbContext.Documents.Where(e => e.DivisionId == document.DivisionId
-                                                                     && e.RegistrationDate.Year == document.RegistrationDate.Year)
+            var ordinalNumber = await dbContext.Documents.Where(e => e.DivisionId == documentCreateRequest.DivisionId
+                                                                     && e.RegistrationDate.Year == documentCreateRequest.RegistrationDate.Year)
                                                          .OrderByDescending(e => e.OrdinalNumber)
                                                          .Select(e => e.OrdinalNumber)
                                                          .FirstOrDefaultAsync(cancellationToken);
