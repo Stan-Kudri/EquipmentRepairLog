@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+using EquipmentRepairLog.Core.Data.DocumentModel;
 
 namespace EquipmentRepairLog.Core.Data.StandardModel
 {
@@ -22,7 +22,7 @@ namespace EquipmentRepairLog.Core.Data.StandardModel
         /// <summary>
         /// Флаг едиственного типа документа к комплекту ИРД
         /// </summary>
-        public required bool IsOnlyTypeDocInRepairLog { get; set; }
+        public required bool IsOnlyTypeDocInERD { get; set; }
 
         /// <summary>
         /// Список документов для данного типа документа

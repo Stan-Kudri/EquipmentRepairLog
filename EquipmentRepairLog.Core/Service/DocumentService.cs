@@ -1,62 +1,44 @@
-﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.DBContext;
-using EquipmentRepairLog.Core.Exceptions;
 using EquipmentRepairLog.Core.Exceptions.AppException;
+using EquipmentRepairLog.Core.FactoryData;
 using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairLog.Core.Service
 {
-    public class DocumentService(AppDbContext dbContext)
+    public class DocumentService(AppDbContext dbContext, DocumentFactroy documentFactroy)
     {
-        public async Task AddAllDocumentsAsync(List<Document> documents, CancellationToken cancellationToken = default)
+        public async Task AddAllDocumentsAsync(List<DocumentCreateRequest> documentCreateRequests, CancellationToken cancellationToken = default)
         {
-            BusinessLogicException.ThrowIfNull(documents);
-
-            if (!documents.Any())
-            {
-                throw new BusinessLogicException("The document does not contain any item.");
-            }
-
-            if (!IsFreePropertyDocuments(documents))
-            {
-                var invalidDocuments = documents.Where(document => dbContext.Documents.FirstOrDefault(e
-                                                => (e.OrdinalNumber == document.OrdinalNumber && e.DocumentType == document.DocumentType)
-                                                || e.RegistrationNumber == document.RegistrationNumber) == null).Select(document => new { document.RegistrationNumber }).ToList();
-                throw new BusinessLogicException($"The document with registration number \"{string.Join(';', invalidDocuments.Select(e => e.RegistrationNumber))}\" is already taken.");
-            }
-
             await dbContext.RunTransactionAsync(async _ =>
             {
-                var executeRepairDocument = new ExecuteRepairDocument();
-                await dbContext.ExecuteRepairDocuments.AddAsync(executeRepairDocument, cancellationToken);
+                // Создание нового комплекта документа(ов)
+                var executeRepairDocument = await CreateERDAsync(cancellationToken);
 
-                documents.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
+                // Добавление документа и связь его с комплектом документа(ов)
+                documentCreateRequests.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
+
+                // Создание документов для добавления в БД
+                var documents = await documentFactroy.CreateListDocumentAsync(documentCreateRequests, cancellationToken);
                 await dbContext.Documents.AddRangeAsync(documents, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
-
             },
             cancellationToken);
         }
 
-        public async Task AddDocument(Document document, CancellationToken cancellationToken = default)
+        public async Task AddDocument(DocumentCreateRequest documentCreateRequest, CancellationToken cancellationToken = default)
         {
-            BusinessLogicException.ThrowIfNull(document);
-            BusinessLogicException.ThrowIfNull(document.ExecuteRepairDocuments);
-
-            if (!IsFreePropertyDocument(document))
-            {
-                throw new BusinessLogicException($"The document with registration number \"{document.RegistrationNumber}\" and order number \"{document.OrdinalNumber}\" is already taken.");
-            }
-
             await dbContext.RunTransactionAsync(async _ =>
             {
-                //Создание нового комплекта документа(ов)
-                var executeRepairDocument = new ExecuteRepairDocument();
-                await dbContext.ExecuteRepairDocuments.AddAsync(executeRepairDocument, cancellationToken);
+                // Создание нового комплекта документа(ов)
+                var executeRepairDocument = await CreateERDAsync(cancellationToken);
 
-                //Добавление документа и связь его с комплектом документа(ов)
-                document.ExecuteRepairDocuments.Add(executeRepairDocument);
+                // Добавление документа и связь его с комплектом документа(ов)
+                documentCreateRequest.ExecuteRepairDocuments?.Add(executeRepairDocument);
+
+                // Создание документа для добавления в БД
+                var document = await documentFactroy.CreateDocumentAsync(documentCreateRequest, cancellationToken);
                 await dbContext.Documents.AddAsync(document, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
@@ -64,25 +46,11 @@ namespace EquipmentRepairLog.Core.Service
             cancellationToken);
         }
 
-        public async Task AddDocumentFromERDAsync(Document document, string registrationNumberDoc, CancellationToken cancellationToken = default)
+        public async Task AddDocumentFromERDAsync(DocumentCreateRequest documentCreateRequest, string registrationNumberDoc, CancellationToken cancellationToken = default)
         {
-            BusinessLogicException.ThrowIfNull(document);
-            BusinessLogicException.ThrowIfNull(document.ExecuteRepairDocuments);
-
-            if (!IsFreePropertyDocument(document))
-            {
-                throw new BusinessLogicException($"The document with registration number \"{document.RegistrationNumber}\" and order number \"{document.OrdinalNumber}\" is already taken.");
-            }
-
-            var docByRegistrationNumber = dbContext.Documents.Include(e => e.ExecuteRepairDocuments).FirstOrDefault(e => e.RegistrationNumber == registrationNumberDoc)
-                                                                    ?? throw new BusinessLogicException($"Registration number {registrationNumberDoc} not found.");
-
-            var executeRepairDoc = docByRegistrationNumber?.ExecuteRepairDocuments?.FirstOrDefault()
-                                    ?? throw new BusinessLogicException("Empty Execute Repair Document.");
-
             await dbContext.RunTransactionAsync(async _ =>
             {
-                document.ExecuteRepairDocuments.Add(executeRepairDoc);
+                var document = await documentFactroy.CreateDocumentFromERDAsync(documentCreateRequest, registrationNumberDoc, cancellationToken);
                 await dbContext.Documents.AddAsync(document, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return DBNull.Value;
@@ -101,44 +69,30 @@ namespace EquipmentRepairLog.Core.Service
 
         public async Task RemoveERDAsync(string registrationNumberDoc, CancellationToken cancellationToken = default)
         {
-            var docByRegistrationNumber = dbContext.Documents.Include(e => e.ExecuteRepairDocuments)
-                                                             .Where(e => e.RegistrationNumber == registrationNumberDoc)
-                                                             .Select(e => new { e.ExecuteRepairDocuments, })
-                                                             .FirstOrDefault();
-
-            if (docByRegistrationNumber == null)
-            {
-                throw new NotFoundException($"Document with registration number \"{registrationNumberDoc}\" not found.");
-            }
-            if (docByRegistrationNumber.ExecuteRepairDocuments != null && docByRegistrationNumber.ExecuteRepairDocuments.Count == 0)
-            {
-                throw new BusinessLogicException($"Document with registration number {registrationNumberDoc} does not belong to any set of executive repair documentation.");
-            }
-
-            var executeRepairDocuments = docByRegistrationNumber.ExecuteRepairDocuments;
-            BusinessLogicException.ThrowIfNull(executeRepairDocuments);
+            var executeRepairDocuments = await dbContext.Documents.Include(e => e.ExecuteRepairDocuments)
+                                                                  .Where(e => e.RegistrationNumber == registrationNumberDoc)
+                                                                  .Select(e => e.ExecuteRepairDocuments)
+                                                                  .FirstOrDefaultAsync(cancellationToken)
+                                                                  ?? throw new NotFoundException($"Document with registration number \"{registrationNumberDoc}\" not found.");
 
             await dbContext.RunTransactionAsync(async _ =>
             {
+                // Получение комплекта документов для удаления по регистрационному номеру одного документа
                 var executeRepairDocumentsId = executeRepairDocuments.ConvertAll(e => e.Id);
                 var documents = dbContext.ExecuteRepairDocuments.Include(erd => erd.Documents).Where(e => executeRepairDocumentsId.Contains(e.Id)).SelectMany(e => e.Documents).Distinct();
 
                 dbContext.Documents.RemoveRange(documents);
                 dbContext.ExecuteRepairDocuments.RemoveRange(executeRepairDocuments);
                 await dbContext.SaveChangesAsync(cancellationToken);
-
                 return DBNull.Value;
             },
             cancellationToken);
         }
 
-        private bool IsFreePropertyDocuments(List<Document> documents)
-        {
-            var registrationNumber = documents.Select(e => e.RegistrationNumber);
-            return !dbContext.Documents.Include(e => e.DocumentType).Any(document => registrationNumber.Contains(document.RegistrationNumber));
-        }
-
-        private bool IsFreePropertyDocument(Document document)
-            => !dbContext.Documents.Include(e => e.DocumentType).Any(e => e.RegistrationNumber == document.RegistrationNumber);
+        private async Task<ExecuteRepairDocument> CreateERDAsync(CancellationToken cancellationToken = default)
+            => (await dbContext.ExecuteRepairDocuments.AddAsync(
+                                                                new ExecuteRepairDocument(),
+                                                                cancellationToken)
+                                                                ).Entity;
     }
 }

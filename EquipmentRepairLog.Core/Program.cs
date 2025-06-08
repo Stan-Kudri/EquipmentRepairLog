@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+using EquipmentRepairLog.Core.Data.DocumentModel;
 using EquipmentRepairLog.Core.Data.EquipmentModel;
 using EquipmentRepairLog.Core.Data.StandardModel;
 using EquipmentRepairLog.Core.Data.Users;
@@ -7,8 +7,9 @@ using EquipmentRepairLog.Core.FactoryData;
 using EquipmentRepairLog.Core.Service;
 using Microsoft.Extensions.DependencyInjection;
 
-var db = await new DbContextFactory().Create();
-var documentService = new DocumentService(db);
+using var db = await new DbContextFactory().CreateAsync();
+var documentFactory = new DocumentFactroy(db);
+var documentService = new DocumentService(db, documentFactory);
 
 var divisionExe = new DivisionFactory().Create("Отдел под", "ОППР", 0);
 
@@ -27,18 +28,18 @@ db.Divisions.Add(division);
 var docTypeFirst = new DocumentType()
 {
     Name = "Акт выполненных работ",
-    IsOnlyTypeDocInRepairLog = true,
+    IsOnlyTypeDocInERD = true,
     ExecutiveRepairDocNumber = 24,
-    Abbreviation = "АВР"
+    Abbreviation = "АВР",
 };
 db.DocumentTypes.Add(docTypeFirst);
 
 var docTypeSecond = new DocumentType()
 {
     Name = "Ведомость выполненных работ",
-    IsOnlyTypeDocInRepairLog = false,
+    IsOnlyTypeDocInERD = false,
     ExecutiveRepairDocNumber = 29,
-    Abbreviation = "ВВР"
+    Abbreviation = "ВВР",
 };
 db.DocumentTypes.Add(docTypeSecond);
 
@@ -48,16 +49,14 @@ db.Perfomers.Add(perfomer);
 var repairFacility = new RepairFacility() { Number = 1, Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1" };
 db.RepairFacilities.Add(repairFacility);
 
-db.SaveChanges();
+await db.SaveChangesAsync();
 
-var docFirst = new Document()
+var docFirst = new DocumentCreateRequest()
 {
     Division = division,
     DocumentType = docTypeFirst,
-    OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "FirstNumber",
     KKSEquipment = new List<KKSEquipment>() { kks },
     Perfomers = new List<Perfomer>() { perfomer },
     DivisionId = division.Id,
@@ -65,14 +64,12 @@ var docFirst = new Document()
     RepairFacilityId = repairFacility.Id,
     RegistrationDate = DateTime.Now,
 };
-var docSecond = new Document()
+var docSecond = new DocumentCreateRequest()
 {
     Division = division,
     DocumentType = docTypeSecond,
-    OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "SecondNumber",
     KKSEquipment = new List<KKSEquipment>() { kks },
     Perfomers = new List<Perfomer>() { perfomer },
     DivisionId = division.Id,
@@ -81,7 +78,7 @@ var docSecond = new Document()
     RegistrationDate = DateTime.Now,
 };
 
-await documentService.AddAllDocumentsAsync(new List<Document> { docFirst, docSecond });
+await documentService.AddAllDocumentsAsync(new List<DocumentCreateRequest> { docFirst, docSecond });
 
 var userService = new UserService(db, new UserValidator());
 
@@ -99,7 +96,7 @@ var kksNewFirst = new KKSEquipment()
     EquipmentType = equipmentTypeNewFirst,
     KKS = "20KAA22AA345 -- 20KAA21AA345 20KAA22AA345",
     EquipmentId = equipmentNewFirst.Id,
-    EquipmentTypeId = equipmentTypeNewFirst.Id
+    EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
 var kksNewSecond = new KKSEquipment()
 {
@@ -107,17 +104,15 @@ var kksNewSecond = new KKSEquipment()
     EquipmentType = equipmentTypeNewFirst,
     KKS = "20KAA11AA345 -- 20KAA21AA335 20KAA22AA325",
     EquipmentId = equipmentNewFirst.Id,
-    EquipmentTypeId = equipmentTypeNewFirst.Id
+    EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
 
-var docNewFirst = new Document()
+var docNewFirst = new DocumentCreateRequest()
 {
     Division = division,
     DocumentType = docTypeSecond,
-    OrdinalNumber = 1,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    RegistrationNumber = "SecondNumber",
     KKSEquipment = new List<KKSEquipment>() { kksNewFirst, kksNewSecond },
     Perfomers = new List<Perfomer>() { perfomer },
     DivisionId = division.Id,
@@ -130,4 +125,4 @@ await equipmentService.AddRangeEquipment([kksNewFirst, kksNewSecond]);
 
 static IServiceCollection AppServiceDI()
             => new ServiceCollection().AddSingleton<AppDbContext>()
-                                      .AddScoped(e => e.GetRequiredService<DbContextFactory>().Create());
+                                      .AddScoped(e => e.GetRequiredService<DbContextFactory>().CreateAsync());

@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.StandardModel;
+using EquipmentRepairLog.Core.Data.StandardModel;
 
 namespace EquipmentRepairLog.Core.FactoryData
 {
@@ -7,7 +7,7 @@ namespace EquipmentRepairLog.Core.FactoryData
         public Perfomer Create(string name, string abbreviation)
         {
             var result = EnsureValid(name, abbreviation);
-            return new Perfomer() { Name = result.Name, Abbreviation = result.Abbreviation };
+            return new Perfomer() { Name = result.Name, Abbreviation = result.Abbreviation, };
         }
     }
 }
