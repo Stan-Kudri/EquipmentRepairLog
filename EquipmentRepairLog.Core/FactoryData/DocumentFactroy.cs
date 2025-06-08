@@ -15,7 +15,7 @@ namespace EquipmentRepairLog.Core.FactoryData
 
             if (documentCreateRequests.Count == 0)
             {
-                throw new NotFoundException("The document does not contain any item.");
+                throw new BusinessLogicException("The document does not contain any item.");
             }
 
             var result = new List<Document>(documentCreateRequests.Count);
@@ -61,14 +61,13 @@ namespace EquipmentRepairLog.Core.FactoryData
             BusinessLogicException.ThrowIfNull(documentCreateRequest);
             BusinessLogicException.ThrowIfNull(documentCreateRequest.ExecuteRepairDocuments);
 
-            var docByRegistrationNumber = await dbContext.Documents.Include(e => e.ExecuteRepairDocuments).FirstOrDefaultAsync(e => e.RegistrationNumber == registrationNumberDoc, cancellationToken)
-                                                                    ?? throw new NotFoundException($"Registration number {registrationNumberDoc} not found.");
-
-            var executeRepairDoc = docByRegistrationNumber?.ExecuteRepairDocuments?.FirstOrDefault()
-                                    ?? throw new NotFoundException("Empty Execute Repair Document.");
+            var executeRepairDoc = await dbContext.Documents.Include(erd => erd.ExecuteRepairDocuments)
+                                                             .Where(e => e.RegistrationNumber == registrationNumberDoc)
+                                                             .SelectMany(e => e.ExecuteRepairDocuments)
+                                                             .FirstOrDefaultAsync(cancellationToken)
+                                                             ?? throw NotFoundException.Create<ExecuteRepairDocument, string>(nameof(registrationNumberDoc), registrationNumberDoc);
 
             documentCreateRequest.ExecuteRepairDocuments.Add(executeRepairDoc);
-
             return await CreateDocumentAsync(documentCreateRequest, cancellationToken);
         }
 
