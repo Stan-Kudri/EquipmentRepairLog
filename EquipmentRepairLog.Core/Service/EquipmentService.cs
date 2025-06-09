@@ -76,8 +76,7 @@ namespace EquipmentRepairLog.Core.Service
 
         // Disable BCC2008
         private async Task AddMissingEquipmentDocuments(List<KKSEquipmentModel> kksEquipmentsModel, CancellationToken cancellationToken = default)
-        {
-            await dbContext.RunTransactionAsync(async _ =>
+            => await dbContext.RunTransactionAsync(async _ =>
             {
                 // Создание списков типа/марки и вида оборудования
                 var equipmentsType = kksEquipmentsModel.Select(e => e.EquipmentType.Name).Distinct().ToList();
@@ -148,7 +147,7 @@ namespace EquipmentRepairLog.Core.Service
                 // Добавление новых KKS со всеми данными в БД
                 await dbContext.KKSEquipments.AddRangeAsync(addNewKKSEquipments, cancellationToken);
 
-                // Поиск отличий полей от дублирующих KKS и добавление их в БД, если есть отличия 
+                // Поиск отличий полей от дублирующих KKS и добавление их в БД, если есть отличия
                 foreach (var addItem in kksEquipments)
                 {
                     for (var i = 0; i < equipmentsDB.Count; i++)
@@ -166,6 +165,5 @@ namespace EquipmentRepairLog.Core.Service
                 return DBNull.Value;
             },
             cancellationToken);
-        }
     }
 }
