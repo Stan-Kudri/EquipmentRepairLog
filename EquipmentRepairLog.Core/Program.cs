@@ -5,7 +5,6 @@ using EquipmentRepairLog.Core.Data.Users;
 using EquipmentRepairLog.Core.DBContext;
 using EquipmentRepairLog.Core.FactoryData;
 using EquipmentRepairLog.Core.Service;
-using Microsoft.Extensions.DependencyInjection;
 
 using var db = await new DbContextFactory().CreateAsync();
 var documentFactory = new DocumentFactroy(db);
@@ -122,7 +121,3 @@ var docNewFirst = new DocumentCreateRequest()
 };
 var equipmentService = new EquipmentService(db);
 await equipmentService.AddRangeEquipment([kksNewFirst, kksNewSecond]);
-
-static IServiceCollection AppServiceDI()
-            => new ServiceCollection().AddSingleton<AppDbContext>()
-                                      .AddScoped(e => e.GetRequiredService<DbContextFactory>().CreateAsync());

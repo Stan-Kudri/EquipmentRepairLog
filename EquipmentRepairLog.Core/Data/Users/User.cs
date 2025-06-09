@@ -1,12 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EquipmentRepairLog.Core.Data.Users
 {
     public class User : Entity
     {
-        private User()
-        {
-        }
+        [SetsRequiredMembers]
+        public User(string username, string passwordHash, UserRole userRole)
+            : this(username, passwordHash) => UserRole = userRole;
 
         [SetsRequiredMembers]
         public User(string username, string passwordHash)
@@ -18,22 +18,22 @@ namespace EquipmentRepairLog.Core.Data.Users
             PasswordHash = passwordHash;
         }
 
-        [SetsRequiredMembers]
-        public User(string username, string passwordHash, UserRole userRole)
-            : this(username, passwordHash) => UserRole = userRole;
+        private User()
+        {
+        }
 
         /// <summary>
-        /// Логин пользователя
+        /// Логин пользователя.
         /// </summary>
         public required string Username { get; set; }
 
         /// <summary>
-        /// Хеш пароля
+        /// Хеш пароля.
         /// </summary>
         public required string PasswordHash { get; set; }
 
         /// <summary>
-        /// Роль пользователя в прилажении
+        /// Роль пользователя в прилажении.
         /// </summary>
         public UserRole UserRole { get; set; } = UserRole.Viewer;
     }

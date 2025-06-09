@@ -1,4 +1,4 @@
-﻿using Ardalis.SmartEnum;
+using Ardalis.SmartEnum;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EquipmentRepairLog.Core.Extension

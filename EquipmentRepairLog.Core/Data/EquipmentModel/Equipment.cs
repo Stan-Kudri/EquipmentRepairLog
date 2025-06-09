@@ -1,24 +1,24 @@
-﻿namespace EquipmentRepairLog.Core.Data.EquipmentModel
+namespace EquipmentRepairLog.Core.Data.EquipmentModel
 {
-    public class Equipment : Entity
+    public class Equipment : Entity, IEquatable<Equipment>
     {
         /// <summary>
-        /// Наименование оборудования
+        /// Наименование оборудования.
         /// </summary>
         public required string Name { get; set; }
 
         /// <summary>
-        /// Описание (другая информация)
+        /// Описание (другая информация).
         /// </summary>
         public string? Description { get; set; }
 
         /// <summary>
-        /// Список KKS оборудования
+        /// Список KKS оборудования.
         /// </summary>
         public List<KKSEquipment>? EquipmentsKKS { get; set; } = new List<KKSEquipment>();
 
         /// <summary>
-        /// Список типов/марок оборудования
+        /// Список типов/марок оборудования.
         /// </summary>
         public List<EquipmentType>? EquipmentTypes { get; set; } = new List<EquipmentType>();
 

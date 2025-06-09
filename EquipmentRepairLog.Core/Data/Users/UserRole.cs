@@ -1,21 +1,21 @@
-﻿using Ardalis.SmartEnum;
+using Ardalis.SmartEnum;
 
 namespace EquipmentRepairLog.Core.Data.Users
 {
     public class UserRole : SmartEnum<UserRole>
     {
         /// <summary>
-        /// Администратор
+        /// Администратор.
         /// </summary>
         public static UserRole Admin = new("Administration", 0);
 
         /// <summary>
-        /// Просмотрщик - пользователь может просматривать записи 
+        /// Просмотрщик - пользователь может просматривать записи.
         /// </summary>
         public static UserRole Viewer = new("User Editor", 1);
 
         /// <summary>
-        /// Пользователь - просматривает и изменяет/добавляет/удаляет записи
+        /// Пользователь - просматривает и изменяет/добавляет/удаляет записи.
         /// </summary>
         public static UserRole Editor = new("User Viewer", 2);
 

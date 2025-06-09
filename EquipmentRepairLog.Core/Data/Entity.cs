@@ -1,9 +1,9 @@
-﻿namespace EquipmentRepairLog.Core.Data
+namespace EquipmentRepairLog.Core.Data
 {
     public class Entity
     {
         /// <summary>
-        /// Идентификатор
+        /// Идентификатор.
         /// </summary>
         public Guid Id { get; set; }
     }
