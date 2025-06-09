@@ -15,25 +15,25 @@ namespace EquipmentRepairLog.Core.DBContext
         {
         }
 
-        public DbSet<User> Users { get; set; }
+        public DbSet<User> Users { get; set; } = null!;
 
-        public DbSet<Division> Divisions { get; set; }
+        public DbSet<Division> Divisions { get; set; } = null!;
 
-        public DbSet<DocumentType> DocumentTypes { get; set; }
+        public DbSet<DocumentType> DocumentTypes { get; set; } = null!;
 
-        public DbSet<Perfomer> Perfomers { get; set; }
+        public DbSet<Perfomer> Perfomers { get; set; } = null!;
 
-        public DbSet<RepairFacility> RepairFacilities { get; set; }
+        public DbSet<RepairFacility> RepairFacilities { get; set; } = null!;
 
-        public DbSet<Equipment> Equipments { get; set; }
+        public DbSet<Equipment> Equipments { get; set; } = null!;
 
-        public DbSet<EquipmentType> EquipmentTypes { get; set; }
+        public DbSet<EquipmentType> EquipmentTypes { get; set; } = null!;
 
-        public DbSet<KKSEquipment> KKSEquipments { get; set; }
+        public DbSet<KKSEquipment> KKSEquipments { get; set; } = null!;
 
-        public DbSet<Document> Documents { get; set; }
+        public DbSet<Document> Documents { get; set; } = null!;
 
-        public DbSet<ExecuteRepairDocument> ExecuteRepairDocuments { get; set; }
+        public DbSet<ExecuteRepairDocument> ExecuteRepairDocuments { get; set; } = null!;
 
         /// <summary>
         /// Runs code within a transaction, taking into account previously created code.
