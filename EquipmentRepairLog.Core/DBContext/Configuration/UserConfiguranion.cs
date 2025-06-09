@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.Users;
+using EquipmentRepairLog.Core.Data.Users;
 using EquipmentRepairLog.Core.Extension;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

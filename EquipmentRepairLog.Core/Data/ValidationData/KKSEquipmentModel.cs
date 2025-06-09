@@ -1,6 +1,6 @@
-﻿using EquipmentRepairLog.Core.Data.DocumentModel;
-using EquipmentRepairLog.Core.Data.EquipmentModel;
 using System.ComponentModel.DataAnnotations;
+using EquipmentRepairLog.Core.Data.DocumentModel;
+using EquipmentRepairLog.Core.Data.EquipmentModel;
 
 namespace EquipmentRepairLog.Core.Data.ValidationData
 {

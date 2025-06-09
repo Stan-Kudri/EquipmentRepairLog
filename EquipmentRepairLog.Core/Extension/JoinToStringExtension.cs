@@ -1,4 +1,4 @@
-﻿namespace EquipmentRepairLog.Core.Extension
+namespace EquipmentRepairLog.Core.Extension
 {
     public static class JoinToStringExtension
     {

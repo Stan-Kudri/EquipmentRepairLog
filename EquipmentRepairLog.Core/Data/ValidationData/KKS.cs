@@ -1,5 +1,5 @@
-﻿using EquipmentRepairLog.Core.Exceptions;
 using System.Text.RegularExpressions;
+using EquipmentRepairLog.Core.Exceptions;
 
 namespace EquipmentRepairLog.Core.Data.ValidationData
 {

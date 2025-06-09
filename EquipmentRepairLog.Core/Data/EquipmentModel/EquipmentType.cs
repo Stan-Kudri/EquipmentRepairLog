@@ -1,16 +1,16 @@
-﻿namespace EquipmentRepairLog.Core.Data.EquipmentModel
+namespace EquipmentRepairLog.Core.Data.EquipmentModel
 {
-    public class EquipmentType : Entity
+    public class EquipmentType : Entity, IEquatable<EquipmentType>
     {
         /// <summary>
-        /// Наименование типа и(или) марки
+        /// Наименование типа и(или) марки.
         /// </summary>
         public required string Name { get; set; }
 
         public required Guid EquipmentId { get; set; }
 
         /// <summary>
-        /// Наименование оборудования
+        /// Наименование оборудования.
         /// </summary>
         public Equipment? Equipment { get; set; }
 

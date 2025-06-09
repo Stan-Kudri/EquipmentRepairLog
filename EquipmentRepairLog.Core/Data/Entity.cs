@@ -1,4 +1,4 @@
-﻿namespace EquipmentRepairLog.Core.Data
+namespace EquipmentRepairLog.Core.Data
 {
     public class Entity
     {

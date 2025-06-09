@@ -1,26 +1,26 @@
-﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+using EquipmentRepairLog.Core.Data.DocumentModel;
 
 namespace EquipmentRepairLog.Core.Data.StandardModel
 {
-    public class RepairFacility : Entity
+    public class RepairFacility : Entity, IEquatable<RepairFacility>
     {
         /// <summary>
-        /// Наименование принадлежности к объекту (ЭБ 1 / ЭБ 2 / ОСО)
+        /// Наименование принадлежности к объекту (ЭБ 1 / ЭБ 2 / ОСО).
         /// </summary>
         public required string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Аббревиатура объекта
+        /// Аббревиатура объекта.
         /// </summary>
         public required string Abbreviation { get; set; } = string.Empty;
 
         /// <summary>
-        /// Номер объекта
+        /// Номер объекта.
         /// </summary>
         public required byte Number { get; set; }
 
         /// <summary>
-        /// Список документов по объекту
+        /// Список документов по объекту.
         /// </summary>
         public List<Document>? Documents { get; set; } = new List<Document>();
 

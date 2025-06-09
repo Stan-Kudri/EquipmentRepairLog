@@ -1,4 +1,4 @@
-﻿using EquipmentRepairLog.Core.Data.DocumentModel;
+using EquipmentRepairLog.Core.Data.DocumentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

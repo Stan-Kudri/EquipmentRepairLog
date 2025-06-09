@@ -1,4 +1,4 @@
-﻿namespace EquipmentRepairLog.Core.DBContext
+namespace EquipmentRepairLog.Core.DBContext
 {
     public class EmptyDisposable : IDisposable
     {
