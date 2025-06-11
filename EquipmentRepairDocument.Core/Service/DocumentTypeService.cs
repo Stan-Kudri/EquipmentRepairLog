@@ -9,6 +9,15 @@ namespace EquipmentRepairDocument.Core.Service
 {
     public class DocumentTypeService(AppDbContext dbContext, DocumentTypeFactory documentTypeFactory)
     {
+        public async Task AddRangeAsync(List<DocumentType> documentTypes, CancellationToken cancellationToken = default)
+        {
+            BusinessLogicException.ThrowIfNull(documentTypes);
+            foreach (var document in documentTypes)
+            {
+                await AddAsync(document, cancellationToken);
+            }
+        }
+
         public async Task AddAsync(DocumentType documentType, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(documentType);
@@ -41,12 +50,21 @@ namespace EquipmentRepairDocument.Core.Service
             }
         }
 
-        public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
+        public async Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var count = await dbContext.DocumentTypes.Where(e => e.Id == id).ExecuteDeleteAsync(cancellationToken);
             if (count == 0)
             {
                 throw new NotFoundException($"The ID for the document type  with \"{id}\" is already taken.");
+            }
+        }
+
+        public async Task RemoveAsync(byte number, CancellationToken cancellationToken = default)
+        {
+            var count = await dbContext.DocumentTypes.Where(e => e.ExecutiveRepairDocNumber == number).ExecuteDeleteAsync(cancellationToken);
+            if (count == 0)
+            {
+                throw new NotFoundException($"The document type number \"{number}\" not found.");
             }
         }
     }
