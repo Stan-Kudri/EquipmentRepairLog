@@ -9,6 +9,15 @@ namespace EquipmentRepairDocument.Core.Service
 {
     public class PerfomerService(AppDbContext dbContext, PerfomerFactory perfomerFactory)
     {
+        public async Task AddRangeAsync(List<Perfomer> perfomers, CancellationToken cancellationToken = default)
+        {
+            BusinessLogicException.ThrowIfNull(perfomers);
+            foreach (var perfomer in perfomers)
+            {
+                await AddAsync(perfomer, cancellationToken);
+            }
+        }
+
         public async Task AddAsync(Perfomer perfomer, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(perfomer);
@@ -40,6 +49,15 @@ namespace EquipmentRepairDocument.Core.Service
             if (count == 0)
             {
                 throw new NotFoundException($"The ID for the perfomer with \"{id}\" is already taken.");
+            }
+        }
+
+        public async Task RemoveAsync(string abbreviation, CancellationToken cancellationToken = default)
+        {
+            var count = await dbContext.Perfomers.Where(e => e.Abbreviation == abbreviation).ExecuteDeleteAsync(cancellationToken);
+            if (count == 0)
+            {
+                throw new NotFoundException($"The perfomer abbreviation \"{abbreviation}\" not found.");
             }
         }
     }
