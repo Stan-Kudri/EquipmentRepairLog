@@ -1,9 +1,21 @@
 using EquipmentRepairDocument.Core.Data.DocumentModel;
+using EquipmentRepairDocument.Core.Exceptions;
 
 namespace EquipmentRepairDocument.Core.Data.StandardModel
 {
     public class Division : Entity, IEquatable<Division>
     {
+        public Division()
+        {
+        }
+
+        public Division(string name, byte number, string abbreviation)
+        {
+            Name = string.IsNullOrEmpty(name) ? throw new BusinessLogicException("The name cannot be empty.") : name;
+            Number = number;
+            Abbreviation = abbreviation;
+        }
+
         /// <summary>
         /// Наименование цеха владельца оборудования.
         /// </summary>
