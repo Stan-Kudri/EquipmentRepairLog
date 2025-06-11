@@ -96,7 +96,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 
         [Theory]
         [MemberData(nameof(RemoveItemDivision))]
-        public async Task Service_Should_Remove_Item_By_ID_To_The_Database(List<Division> divisions, byte removeByNumber, List<Division> expectDivisions)
+        public async Task Service_Should_Remove_Item_By_Number_Division_To_The_Database(List<Division> divisions, byte removeByNumber, List<Division> expectDivisions)
         {
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();

@@ -65,7 +65,7 @@ namespace EquipmentRepairDocument.Core.Service
             var count = await dbContext.Divisions.Where(e => e.Number == number).ExecuteDeleteAsync(cancellationToken);
             if (count == 0)
             {
-                throw new NotFoundException($"The ID for the division with \"{number}\" is already taken.");
+                throw new NotFoundException($"The division number \"{number}\" not found.");
             }
         }
     }
