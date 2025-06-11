@@ -1,4 +1,5 @@
 using EquipmentRepairDocument.Core.Data.StandardModel;
+using EquipmentRepairDocument.Core.DBContext;
 using EquipmentRepairDocument.Core.FactoryData;
 using EquipmentRepairDocument.Core.Service;
 using FluentAssertions;
@@ -63,7 +64,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         public async Task Service_Should_Add_All_The_Item_Of_Database(List<Division> division)
         {
             //Arrange
-            using var dbContext = await (new TestDBContextFactory().Create());
+            using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var divisionFactory = new DivisionFactory();
             var divisionRepository = new DivisionService(dbContext, divisionFactory);
             await divisionRepository.AddRangeAsync(division);
@@ -80,7 +81,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         public async Task Service_Should_Add_The_Item_To_The_Database(List<Division> divisions, Division addDivision, List<Division> expectDivisions)
         {
             //Arrange
-            using var dbContext = await (new TestDBContextFactory().Create());
+            using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var divisionFactory = new DivisionFactory();
             var divisionRepository = new DivisionService(dbContext, divisionFactory);
             await divisionRepository.AddRangeAsync(divisions);
@@ -98,7 +99,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         public async Task Service_Should_Remove_Item_By_ID_To_The_Database(List<Division> divisions, byte removeByNumber, List<Division> expectDivisions)
         {
             //Arrange
-            using var dbContext = await (new TestDBContextFactory().Create());
+            using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var divisionFactory = new DivisionFactory();
             var divisionRepository = new DivisionService(dbContext, divisionFactory);
             await divisionRepository.AddRangeAsync(divisions);
