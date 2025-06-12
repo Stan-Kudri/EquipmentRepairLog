@@ -120,4 +120,4 @@ var docNewFirst = new DocumentCreateRequest()
     RegistrationDate = DateTime.Now,
 };
 var equipmentService = new EquipmentService(db);
-await equipmentService.AddRangeEquipment([kksNewFirst, kksNewSecond]);
+await equipmentService.AddRangeEquipmentAsync([kksNewFirst, kksNewSecond]);
