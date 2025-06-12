@@ -66,8 +66,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var documentTypeFactory = new DocumentTypeFactory();
-            var documentTypeRepository = new DocumentTypeService(dbContext, documentTypeFactory);
-            await documentTypeRepository.AddRangeAsync(documentTypes);
+            var documentTypeService = new DocumentTypeService(dbContext, documentTypeFactory);
+            await documentTypeService.AddRangeAsync(documentTypes);
 
             //Act
             var actualDocumentTypes = dbContext.DocumentTypes.ToList();
@@ -83,9 +83,9 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var documentTypeFactory = new DocumentTypeFactory();
-            var documentTypeRepository = new DocumentTypeService(dbContext, documentTypeFactory);
-            await documentTypeRepository.AddRangeAsync(DocumentTypes);
-            await documentTypeRepository.AddAsync(addDocumentType);
+            var documentTypeService = new DocumentTypeService(dbContext, documentTypeFactory);
+            await documentTypeService.AddRangeAsync(DocumentTypes);
+            await documentTypeService.AddAsync(addDocumentType);
 
             //Act                                              
             var actualDocumentTypes = dbContext.DocumentTypes.ToList();
@@ -101,9 +101,9 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var documentTypeFactory = new DocumentTypeFactory();
-            var documentTypeRepository = new DocumentTypeService(dbContext, documentTypeFactory);
-            await documentTypeRepository.AddRangeAsync(DocumentTypes);
-            await documentTypeRepository.RemoveAsync(number);
+            var documentTypeService = new DocumentTypeService(dbContext, documentTypeFactory);
+            await documentTypeService.AddRangeAsync(DocumentTypes);
+            await documentTypeService.RemoveAsync(number);
 
             //Act                                              
             var actualDocumentTypes = dbContext.DocumentTypes.ToList();

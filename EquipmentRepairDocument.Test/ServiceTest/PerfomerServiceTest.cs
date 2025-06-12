@@ -65,8 +65,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var perfomerFactory = new PerfomerFactory();
-            var perfomerRepository = new PerfomerService(dbContext, perfomerFactory);
-            await perfomerRepository.AddRangeAsync(perfomers);
+            var perfomerService = new PerfomerService(dbContext, perfomerFactory);
+            await perfomerService.AddRangeAsync(perfomers);
 
             //Act
             var actualPerfomers = dbContext.Perfomers.ToList();
@@ -82,9 +82,9 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var perfomerFactory = new PerfomerFactory();
-            var perfomerRepository = new PerfomerService(dbContext, perfomerFactory);
-            await perfomerRepository.AddRangeAsync(perfomers);
-            await perfomerRepository.AddAsync(addPerfomer);
+            var perfomerService = new PerfomerService(dbContext, perfomerFactory);
+            await perfomerService.AddRangeAsync(perfomers);
+            await perfomerService.AddAsync(addPerfomer);
 
             //Act                                              
             var actualPerfomers = dbContext.Perfomers.ToList();
@@ -100,9 +100,9 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var perfomerFactory = new PerfomerFactory();
-            var perfomerRepository = new PerfomerService(dbContext, perfomerFactory);
-            await perfomerRepository.AddRangeAsync(perfomers);
-            await perfomerRepository.RemoveAsync(removeByAbbreviation);
+            var perfomerService = new PerfomerService(dbContext, perfomerFactory);
+            await perfomerService.AddRangeAsync(perfomers);
+            await perfomerService.RemoveAsync(removeByAbbreviation);
 
             //Act                                                
             var actualPerfomers = dbContext.Perfomers.ToList();

@@ -2,7 +2,7 @@ namespace EquipmentRepairDocument.Core.Data.Users
 {
     public class UserValidator
     {
-        public const int MinLengthUsername = 3;
+        public const int MinLengthUsername = 6;
 
         public const int MinLengthPass = 6;
 
