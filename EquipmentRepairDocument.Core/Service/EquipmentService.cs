@@ -9,7 +9,7 @@ namespace EquipmentRepairDocument.Core.Service
 {
     public class EquipmentService(AppDbContext dbContext)
     {
-        public async Task AddEquipment(KKSEquipment kksEquipment)
+        public async Task AddEquipmentAsync(KKSEquipment kksEquipment)
         {
             BusinessLogicException.ThrowIfNull(kksEquipment);
             BusinessLogicException.ThrowIfNull(kksEquipment.Equipment);
@@ -39,7 +39,7 @@ namespace EquipmentRepairDocument.Core.Service
             await AddMissingEquipmentDocuments(addKKSEquipments);
         }
 
-        public async Task AddRangeEquipment(List<KKSEquipment> kksEquipments)
+        public async Task AddRangeEquipmentAsync(List<KKSEquipment> kksEquipments)
         {
             ArgumentNullException.ThrowIfNull(kksEquipments);
 
