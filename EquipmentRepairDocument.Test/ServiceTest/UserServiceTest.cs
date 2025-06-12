@@ -6,32 +6,29 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 {
     public class UserServiceTest
     {
-        public static IEnumerable<object[]> AddUser = new List<object[]>
-        {
-            new object[]
-            {
+        public static IEnumerable<object[]> AddUser =
+        [
+            [
                 "SergeySA",
                 "Qwe123456",
-            }
-        };
+            ]
+        ];
 
-        public static IEnumerable<object[]> AddUserInvalidPassword = new List<object[]>
-        {
-            new object[]
-            {
+        public static IEnumerable<object[]> AddUserInvalidPassword =
+        [
+            [
                 "SergeySA",
                 "123",
-            }
-        };
+            ]
+        ];
 
-        public static IEnumerable<object[]> AddUserInvalidUsername = new List<object[]>
-        {
-            new object[]
-            {
+        public static IEnumerable<object[]> AddUserInvalidUsername =
+        [
+            [
                 "Ser",
                 "Qwe123456",
-            }
-        };
+            ]
+        ];
 
         [Theory]
         [MemberData(nameof(AddUser))]
