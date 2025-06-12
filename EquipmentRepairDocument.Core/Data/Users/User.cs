@@ -36,5 +36,8 @@ namespace EquipmentRepairDocument.Core.Data.Users
         /// Роль пользователя в прилажении.
         /// </summary>
         public UserRole UserRole { get; set; } = UserRole.Viewer;
+
+        public bool Equals(User? user)
+            => user is not null && user.Username == Username && user.PasswordHash == PasswordHash;
     }
 }

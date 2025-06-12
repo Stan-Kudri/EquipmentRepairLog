@@ -66,8 +66,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var divisionFactory = new DivisionFactory();
-            var divisionRepository = new DivisionService(dbContext, divisionFactory);
-            await divisionRepository.AddRangeAsync(division);
+            var divisionService = new DivisionService(dbContext, divisionFactory);
+            await divisionService.AddRangeAsync(division);
 
             //Act
             var actualDivisions = dbContext.Divisions.ToList();
@@ -83,9 +83,9 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var divisionFactory = new DivisionFactory();
-            var divisionRepository = new DivisionService(dbContext, divisionFactory);
-            await divisionRepository.AddRangeAsync(divisions);
-            await divisionRepository.AddAsync(addDivision);
+            var divisionService = new DivisionService(dbContext, divisionFactory);
+            await divisionService.AddRangeAsync(divisions);
+            await divisionService.AddAsync(addDivision);
 
             //Act
             var actualDivisions = dbContext.Divisions.ToList();
@@ -101,9 +101,9 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             //Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var divisionFactory = new DivisionFactory();
-            var divisionRepository = new DivisionService(dbContext, divisionFactory);
-            await divisionRepository.AddRangeAsync(divisions);
-            await divisionRepository.RemoveAsync(removeByNumber);
+            var divisionService = new DivisionService(dbContext, divisionFactory);
+            await divisionService.AddRangeAsync(divisions);
+            await divisionService.RemoveAsync(removeByNumber);
 
             //Act
             var actualDivisions = dbContext.Divisions.ToList();

@@ -7,6 +7,11 @@ namespace EquipmentRepairDocument.Core.Service
 {
     public class UserService(AppDbContext dbContext, UserValidator userValidator)
     {
+        public UserService(AppDbContext dbContext)
+            : this(dbContext, new UserValidator())
+        {
+        }
+
         public async Task AddAsync(string username, string password, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(username);
@@ -34,8 +39,11 @@ namespace EquipmentRepairDocument.Core.Service
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public User? GetUser(string username, string passwordHash)
+        public User? GetUserPasswordHash(string username, string passwordHash)
             => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username && e.PasswordHash == passwordHash);
+
+        public User? GetUserByPassword(string username, string password)
+            => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username && e.PasswordHash == Hash(password));
 
         public bool IsFreeUsername(string username)
             => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username) == null;
