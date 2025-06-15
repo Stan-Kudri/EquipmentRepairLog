@@ -1,10 +1,10 @@
 using EquipmentRepairDocument.Core.Data.DocumentModel;
 using EquipmentRepairDocument.Core.Data.EquipmentModel;
 using EquipmentRepairDocument.Core.Data.StandardModel;
-using EquipmentRepairDocument.Core.Data.Users;
 using EquipmentRepairDocument.Core.DBContext;
 using EquipmentRepairDocument.Core.FactoryData;
 using EquipmentRepairDocument.Core.Service;
+using EquipmentRepairDocument.Core.Service.Users;
 
 using var db = await new DbContextFactory().CreateAsync();
 var documentFactory = new DocumentFactroy(db);
@@ -79,7 +79,7 @@ var docSecond = new DocumentCreateRequest()
 
 await documentService.AddAllDocumentsAsync(new List<DocumentCreateRequest> { docFirst, docSecond });
 
-var userService = new UserService(db, new UserValidator());
+var userService = new UserService(db, new UserValidator(), new BCryptPasswordHasher());
 
 await userService.AddAsync("Stan228337", "Qav228337");
 

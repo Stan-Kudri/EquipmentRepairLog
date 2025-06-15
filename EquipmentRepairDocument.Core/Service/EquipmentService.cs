@@ -3,6 +3,7 @@ using EquipmentRepairDocument.Core.Data.EquipmentModel;
 using EquipmentRepairDocument.Core.Data.ValidationData;
 using EquipmentRepairDocument.Core.DBContext;
 using EquipmentRepairDocument.Core.Exceptions;
+using EquipmentRepairDocument.Core.Exceptions.AppException;
 using EquipmentRepairDocument.Core.Extension;
 
 namespace EquipmentRepairDocument.Core.Service
@@ -16,88 +17,70 @@ namespace EquipmentRepairDocument.Core.Service
             BusinessLogicException.ThrowIfNull(kksEquipment.EquipmentType);
             BusinessLogicException.ThrowIfNullOrEmpty(kksEquipment.KKS);
 
-            var addKKSEquipments = new List<KKSEquipmentModel>();
-            var resultKKS = KKS.CreateArray(kksEquipment.KKS).ToList();
+            var resultKKS = KKS.CreateArray(kksEquipment.KKS)
+                               .Where(e => !e.HasError)
+                               .Select(e => e.Value)
+                               .ToList() ?? throw new NotFoundException("No KKS elements found to add.");
 
-            if (resultKKS.Any(e => e.HasError))
+            if (resultKKS.Count == 0)
             {
-                throw new BusinessLogicException($"Error naming:{Environment.NewLine},{resultKKS.ErrorListMassage()}");
+                throw new BusinessLogicException($"Error naming:{Environment.NewLine}{KKS.CreateArray(kksEquipment.KKS).JoinErrorToString()}");
             }
 
-            foreach (var addItem in resultKKS.Where(e => e.HasError == false).Select(e => e.Value))
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+            var addKKSEquipments = resultKKS.Select(addItem => new KKSEquipmentModel
             {
-                if (addItem == null)
-                {
-                    throw new BusinessLogicException("KKS conversion error.");
-                }
-                else
-                {
-                    addKKSEquipments.Add(new KKSEquipmentModel() { Equipment = kksEquipment.Equipment, EquipmentType = kksEquipment.EquipmentType, KKS = addItem.Value });
-                }
-            }
+                Equipment = kksEquipment.Equipment,
+                EquipmentType = kksEquipment.EquipmentType,
+                KKS = addItem.Value,
+            }).ToList();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
             await AddMissingEquipmentDocuments(addKKSEquipments);
         }
 
         public async Task AddRangeEquipmentAsync(List<KKSEquipment> kksEquipments)
         {
-            ArgumentNullException.ThrowIfNull(kksEquipments);
-
-            var addKKSEquipments = new List<KKSEquipmentModel>();
+            BusinessLogicException.ThrowIfNull(kksEquipments);
 
             foreach (var item in kksEquipments)
             {
-                BusinessLogicException.ThrowIfNull(item.Equipment);
-                BusinessLogicException.ThrowIfNull(item.EquipmentType);
-                BusinessLogicException.ThrowIfNullOrEmpty(item.KKS);
-
-                var resultKKS = KKS.CreateArray(item.KKS).ToList();
-
-                if (resultKKS.Any(e => e.HasError))
-                {
-                    throw new BusinessLogicException($"Error naming:{Environment.NewLine},{resultKKS.ErrorListMassage()}");
-                }
-
-                foreach (var addItem in resultKKS.Where(e => e.HasError == false).Select(e => e.Value))
-                {
-                    if (addItem == null)
-                    {
-                        throw new BusinessLogicException("KKS conversion error.");
-                    }
-                    else
-                    {
-                        addKKSEquipments.Add(new KKSEquipmentModel() { Equipment = item.Equipment, EquipmentType = item.EquipmentType, KKS = addItem.Value });
-                    }
-                }
+                await AddEquipmentAsync(item);
             }
-
-            await AddMissingEquipmentDocuments(addKKSEquipments);
         }
 
         // Disable BCC2008
         private async Task AddMissingEquipmentDocuments(List<KKSEquipmentModel> kksEquipmentsModel, CancellationToken cancellationToken = default)
             => await dbContext.RunTransactionAsync(async _ =>
             {
-                // Создание списков типа/марки и вида оборудования
-                var equipmentsType = kksEquipmentsModel.Select(e => e.EquipmentType.Name).Distinct().ToList();
+                // Создание переданного списка оборудования
                 var equipments = kksEquipmentsModel.Select(e => e.Equipment.Name).Distinct().ToList();
+
+                // Создание переданного списка типа оборудования
+                var equipmentsType = kksEquipmentsModel.Select(e => e.EquipmentType.Name).Distinct().ToList();
+
+                // Создание переданного списка KKS
                 var listKKS = kksEquipmentsModel.Select(e => e.KKS).Distinct().ToList();
 
-                // Поиск и добавление отсутствующих видов оборудовния
+                // Поиск и добавление в БД отсутствующих видов оборудовния
                 var containsDBEquipment = dbContext.Equipments.AsNoTracking().Where(e => equipments.Contains(e.Name)).Select(e => e.Name).ToList();
-                var addEquipment = kksEquipmentsModel.Where(e => !containsDBEquipment.Contains(e.Equipment.Name)).Select(e => e.Equipment).Distinct();
-                if (addEquipment.Any())
+                var addEquipment = kksEquipmentsModel.Where(e => !containsDBEquipment.Contains(e.Equipment.Name)).Select(e => e.Equipment).Distinct().ToList();
+                if (addEquipment.Count != 0)
                 {
                     await dbContext.Equipments.AddRangeAsync(addEquipment, cancellationToken);
                     await dbContext.SaveChangesAsync(cancellationToken);
                 }
 
-                // Поиск и добавление отсутствующих типов/марок оборудовния
+                // Поиск и добавление в БД отсутствующих типов/марок оборудовния
                 var containsDBEquipmentType = dbContext.EquipmentTypes.AsNoTracking().Where(e => equipmentsType.Contains(e.Name)).Select(e => e.Name).ToList();
-                var missingEquipmentType = kksEquipmentsModel.Where(e => !containsDBEquipmentType.Contains(e.EquipmentType.Name)).Select(e => e.EquipmentType).Distinct();
-                if (missingEquipmentType.Any())
+                var missingEquipmentType = kksEquipmentsModel.Where(e => !containsDBEquipmentType.Contains(e.EquipmentType.Name)).Select(e => e.EquipmentType).Distinct().ToList();
+                if (missingEquipmentType.Count != 0)
                 {
-                    var addEquipmentType = missingEquipmentType.Join(dbContext.Equipments,
+                    var equipmentNames = new HashSet<string>(kksEquipmentsModel.Select(e => e.Equipment.Name).Distinct());
+                    var equipmentByName = dbContext.Equipments.Where(e => equipmentNames.Contains(e.Name)).ToList();
+
+                    // Создание списка с полными данными объекта для добавления
+                    var addEquipmentType = missingEquipmentType.Join(equipmentByName,
                                                                       a => a.Equipment?.Name,
                                                                       b => b.Name,
                                                                       (a, b) => new EquipmentType()
@@ -130,9 +113,7 @@ namespace EquipmentRepairDocument.Core.Service
                     }
                 }
 
-                // Поиск дублирующих KKS из переданных и БД
-                var equipmentsDB = dbContext.KKSEquipments.AsNoTracking().Where(e => listKKS.Contains(e.KKS)).Select(e => new { e.EquipmentId, e.EquipmentTypeId, e.KKS }).ToList();
-
+                // Добавление данных для объектов
                 var kksEquipments = kksEquipmentsModel.Select(item => new KKSEquipment()
                 {
                     Equipment = item.Equipment,
@@ -142,6 +123,10 @@ namespace EquipmentRepairDocument.Core.Service
                     EquipmentTypeId = item.EquipmentTypeId,
                 });
 
+                // Поиск дубликатов KKS в БД
+                var equipmentsDB = dbContext.KKSEquipments.AsNoTracking().Where(e => listKKS.Contains(e.KKS)).Select(e => new { e.EquipmentId, e.EquipmentTypeId, e.KKS }).ToList();
+
+                // Поиск отсутствующих KKS в БД
                 var addNewKKSEquipments = kksEquipments.ExceptBy(equipmentsDB.Select(e => e.KKS), e => e.KKS).ToList();
 
                 // Добавление новых KKS со всеми данными в БД
