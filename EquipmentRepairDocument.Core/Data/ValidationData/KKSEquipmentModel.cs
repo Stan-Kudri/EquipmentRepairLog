@@ -4,7 +4,7 @@ using EquipmentRepairDocument.Core.Data.EquipmentModel;
 
 namespace EquipmentRepairDocument.Core.Data.ValidationData
 {
-    public class KKSEquipmentModel
+    public class KKSEquipmentModel : Entity
     {
         /// <summary>
         /// Идентификационный номер оборудования/детали.

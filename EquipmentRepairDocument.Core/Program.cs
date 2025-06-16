@@ -1,6 +1,7 @@
 using EquipmentRepairDocument.Core.Data.DocumentModel;
 using EquipmentRepairDocument.Core.Data.EquipmentModel;
 using EquipmentRepairDocument.Core.Data.StandardModel;
+using EquipmentRepairDocument.Core.Data.ValidationData;
 using EquipmentRepairDocument.Core.DBContext;
 using EquipmentRepairDocument.Core.FactoryData;
 using EquipmentRepairDocument.Core.Service;
@@ -89,7 +90,7 @@ var equipmentNewFirst = new Equipment() { Name = "Клапан запорный"
 
 var equipmentTypeNewFirst = new EquipmentType() { Name = "НГ-2265", Equipment = equipmentNewFirst, EquipmentId = equipmentNewFirst.Id };
 
-var kksNewFirst = new KKSEquipment()
+var kksNewFirst = new KKSEquipmentModel()
 {
     Equipment = equipmentNewFirst,
     EquipmentType = equipmentTypeNewFirst,
@@ -97,7 +98,7 @@ var kksNewFirst = new KKSEquipment()
     EquipmentId = equipmentNewFirst.Id,
     EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
-var kksNewSecond = new KKSEquipment()
+var kksNewSecond = new KKSEquipmentModel()
 {
     Equipment = equipmentNewFirst,
     EquipmentType = equipmentTypeNewFirst,
@@ -106,18 +107,5 @@ var kksNewSecond = new KKSEquipment()
     EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
 
-var docNewFirst = new DocumentCreateRequest()
-{
-    Division = division,
-    DocumentType = docTypeSecond,
-    RepairFacility = repairFacility,
-    RepairDate = DateTime.Now,
-    KKSEquipment = new List<KKSEquipment>() { kksNewFirst, kksNewSecond },
-    Perfomers = new List<Perfomer>() { perfomer },
-    DivisionId = division.Id,
-    DocumentTypeId = docTypeSecond.Id,
-    RepairFacilityId = repairFacility.Id,
-    RegistrationDate = DateTime.Now,
-};
 var equipmentService = new EquipmentService(db);
 await equipmentService.AddRangeEquipmentAsync([kksNewFirst, kksNewSecond]);

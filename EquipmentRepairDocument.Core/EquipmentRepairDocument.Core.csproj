@@ -25,8 +25,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <EditorConfigFiles Remove="C:\Users\user\source\repos\EquipmentRepairDocument\EquipmentRepairDocument.Core\Service\Users\.editorconfig" />
-  </ItemGroup>
-
 </Project>

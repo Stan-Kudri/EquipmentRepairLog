@@ -9,7 +9,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 {
     public class UserServiceTest
     {
-        public static IEnumerable<object[]> AddUser =
+        public static IEnumerable<object[]> AddUser =>
         [
             [
                 "SergeySA",
@@ -17,7 +17,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             ]
         ];
 
-        public static IEnumerable<object[]> AddUserInvalidPassword =
+        public static IEnumerable<object[]> AddUserInvalidPassword =>
         [
             [
                 "SergeySA",
@@ -25,7 +25,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             ]
         ];
 
-        public static IEnumerable<object[]> AddUserInvalidUsername =
+        public static IEnumerable<object[]> AddUserInvalidUsername =>
         [
             [
                 "Ser",
@@ -34,9 +34,9 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         ];
 
         [Fact(DisplayName = "Should throw exception when username format is invalid")]
-        public async Task AddAsync_InvalidUsernameFormat_ThrowsException()
+        public async Task AddAsync_Invalid_Username_Format_Throws_Exception()
         {
-            const string invalidMessage = "invalid username passed";
+            const string invalidMessage = "Invalid username passed.";
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var userValidator = Substitute.For<IUserValidator>();
             userValidator.ValidFormatUsername(Arg.Any<string>(), out _)
@@ -54,9 +54,9 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         }
 
         [Fact(DisplayName = "Should throw exception when password format is invalid")]
-        public async Task AddAsync_InvalidPasswordFormat_ThrowsException()
+        public async Task AddAsync_Invalid_Password_Format_Throws_Exception()
         {
-            const string invalidMessage = "invalid password passed";
+            const string invalidMessage = "Invalid username passed.";
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var userValidator = Substitute.For<IUserValidator>();
             userValidator.ValidFormatUsername(Arg.Any<string>(), out _).Returns(true);
@@ -75,7 +75,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         }
 
         [Fact(DisplayName = "Should throw exception when username is null")]
-        public async Task AddAsync_UsernameIsNull_ThrowsException()
+        public async Task AddAsync_Username_Is_Null_Throws_Exception()
         {
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var userValidator = Substitute.For<IUserValidator>();
@@ -83,11 +83,11 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var service = new UserService(dbContext, userValidator, passwordHasher);
 
             await FluentActions.Invoking(() => service.AddAsync(null!, "password"))
-                .Should().ThrowAsync<BusinessLogicException>();
+                               .Should().ThrowAsync<BusinessLogicException>();
         }
 
         [Fact(DisplayName = "Should throw exception when password is null")]
-        public async Task AddAsync_PasswordIsNull_ThrowsException()
+        public async Task AddAsync_Password_Is_Null_Throws_Exception()
         {
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var userValidator = Substitute.For<IUserValidator>();
@@ -95,11 +95,11 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var service = new UserService(dbContext, userValidator, passwordHasher);
 
             await FluentActions.Invoking(() => service.AddAsync("username", null!))
-                .Should().ThrowAsync<BusinessLogicException>();
+                               .Should().ThrowAsync<BusinessLogicException>();
         }
 
         [Fact(DisplayName = "Should return false when username already exists")]
-        public async Task IsFreeUsername_ExistingUsername_ReturnsFalseAsync()
+        public async Task IsFreeUsername_Existing_Username_Returns_False_Async()
         {
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             dbContext.Users.Add(new User("existingUser", "hash"));
@@ -115,7 +115,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         }
 
         [Fact(DisplayName = "Should return true when username does not exist")]
-        public async Task IsFreeUsername_NonExistingUsername_ReturnsTrueAsync()
+        public async Task IsFreeUsername_Non_Existing_Username_Returns_True_Async()
         {
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var userValidator = Substitute.For<IUserValidator>();
