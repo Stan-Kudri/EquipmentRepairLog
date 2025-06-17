@@ -1,10 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using EquipmentRepairDocument.Core.Data.DocumentModel;
-using EquipmentRepairDocument.Core.Data.EquipmentModel;
 
 namespace EquipmentRepairDocument.Core.Data.ValidationData
 {
-    public class KKSEquipmentModel : Entity
+    public class KKSEquipmentRequest : Entity
     {
         /// <summary>
         /// Идентификационный номер оборудования/детали.
@@ -19,16 +17,16 @@ namespace EquipmentRepairDocument.Core.Data.ValidationData
         /// <summary>
         /// Наименование оборудования.
         /// </summary>
-        public Equipment Equipment { get; set; } = null!;
+        public required string Equipment { get; set; } = string.Empty;
 
         /// <summary>
         /// Тип и(или) Марка оборудования.
         /// </summary>
-        public EquipmentType EquipmentType { get; set; } = null!;
+        public required string EquipmentType { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Список документов для данного KKS.
-        /// </summary>
-        public List<Document>? KKSEquipmentDocuments { get; set; } = new List<Document>();
+        public bool Equals(KKSEquipmentRequest? kksEquipment)
+            => kksEquipment is not null && kksEquipment.KKS == KKS && kksEquipment.EquipmentType == EquipmentType;
+
+        public override int GetHashCode() => HashCode.Combine(KKS, EquipmentType);
     }
 }

@@ -13,31 +13,18 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         public static IEnumerable<object[]> GetEquipmentData() =>
         [
             [
-                new KKSEquipmentModel
+                new KKSEquipmentRequest
                 {
-                    Id = new Guid("AFF3C087-5F43-4266-8342-542A8A39B766"),
                     KKS = "10KAA22AA345",
-                    EquipmentId = new Guid("ACC3C087-5F43-4266-8342-542A8A39B766"),
-                    EquipmentTypeId = new Guid("AAC3C087-5F43-4266-8342-542A8A39B766"),
-                    Equipment = new Equipment
-                    {
-                        Id = new Guid("ACC3C087-5F43-4266-8342-542A8A39B766"),
-                        Name = "Клапан запорный",
-                        Description = "Клапан новый"
-                    },
-                    EquipmentType = new EquipmentType
-                    {
-                        Id = new Guid("AAC3C087-5F43-4266-8342-542A8A39B766"),
-                        EquipmentId = new Guid("ACC3C087-5F43-4266-8342-542A8A39B766"),
-                        Name = "КПЛВ.49833-12"
-                    }
+                    Equipment = "Клапан запорный",
+                    EquipmentType = "КПЛВ.49833-12",
                 }
             ]
         ];
 
         [Theory]
         [MemberData(nameof(GetEquipmentData))]
-        public async Task AddEquipmentAsync_Should_Save_KKS_Equipment_To_Database(KKSEquipmentModel kksEquipment)
+        public async Task AddEquipmentAsync_Should_Save_KKS_Equipment_To_Database(KKSEquipmentRequest kksEquipment)
         {
             // Arrange
             var dbContext = await TestDBContextFactory.Create<AppDbContext>();
@@ -50,8 +37,6 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             // Assert
             Assert.NotNull(actualKKSEquipment);
             Assert.Equal(kksEquipment.KKS, actualKKSEquipment.KKS);
-            Assert.Equal(kksEquipment.EquipmentId, actualKKSEquipment.EquipmentId);
-            Assert.Equal(kksEquipment.EquipmentTypeId, actualKKSEquipment.EquipmentTypeId);
         }
 
         [Fact(DisplayName = "AddEquipmentAsync with null equipment should throw exception")]
@@ -72,10 +57,10 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var equipmentService = new EquipmentService(dbContext);
 
-            var kksEquipment = new KKSEquipmentModel
+            var kksEquipment = new KKSEquipmentRequest
             {
                 Equipment = null!, // intentionally null
-                EquipmentType = new EquipmentType { Name = "Type", Equipment = new Equipment { Name = "Equipment" }, EquipmentId = Guid.NewGuid(), },
+                EquipmentType = "Type",
                 KKS = "GoodKKS"
             };
 
@@ -92,9 +77,9 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var equipmentService = new EquipmentService(dbContext);
 
-            var kksEquipment = new KKSEquipmentModel
+            var kksEquipment = new KKSEquipmentRequest
             {
-                Equipment = new Equipment { Name = "Equipment" },
+                Equipment = "Equipment",
                 EquipmentType = null!, // intentionally null
                 KKS = "GoodKKS"
             };
@@ -113,10 +98,10 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var equipmentService = new EquipmentService(dbContext);
 
-            var kksEquipment = new KKSEquipmentModel
+            var kksEquipment = new KKSEquipmentRequest
             {
-                Equipment = new Equipment { Name = "Equipment" },
-                EquipmentType = new EquipmentType { Name = "Type", Equipment = new Equipment { Name = "Equipment" }, EquipmentId = Guid.NewGuid(), },
+                Equipment = "Equipment",
+                EquipmentType = "Type",
                 KKS = kks // null or empty value
             };
 
@@ -133,10 +118,10 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var equipmentService = new EquipmentService(dbContext);
 
-            var kksEquipment = new KKSEquipmentModel
+            var kksEquipment = new KKSEquipmentRequest
             {
-                Equipment = new Equipment { Name = "Equipment" },
-                EquipmentType = new EquipmentType { Name = "Type", Equipment = new Equipment { Name = "Equipment" }, EquipmentId = Guid.NewGuid(), },
+                Equipment = "Equipment",
+                EquipmentType = "Type",
                 KKS = "error" // triggers an error result in KKS.CreateArray
             };
 
@@ -157,13 +142,10 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var equipmentTypeName = "Type";
             var kksValue = "10KAA22AA345";
 
-            var equipment = new Equipment { Name = equipmentName, Id = Guid.NewGuid(), };
-            var equipmentType = new EquipmentType { Name = equipmentTypeName, Equipment = equipment, EquipmentId = equipment.Id };
-
-            var kksEquipment = new KKSEquipmentModel
+            var kksEquipment = new KKSEquipmentRequest
             {
-                Equipment = equipment,
-                EquipmentType = equipmentType,
+                Equipment = equipmentName,
+                EquipmentType = equipmentTypeName,
                 KKS = kksValue
             };
 
@@ -199,18 +181,18 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var equipmentFirst = new Equipment { Name = "EquipmentFirst", Id = Guid.NewGuid() };
             var equipmentSecond = new Equipment { Name = "EquipmentSecond", Id = Guid.NewGuid() };
 
-            var list = new List<KKSEquipmentModel>
+            var list = new List<KKSEquipmentRequest>
             {
-                new KKSEquipmentModel
+                new KKSEquipmentRequest
                 {
-                    Equipment = equipmentFirst,
-                    EquipmentType = new EquipmentType { Name = "TypeFirst", Equipment = equipmentFirst, EquipmentId = equipmentFirst.Id },
+                    Equipment = "EquipmentFirst",
+                    EquipmentType = "TypeFirst",
                     KKS = "10KAA22AA341"
                 },
-                new KKSEquipmentModel
+                new KKSEquipmentRequest
                 {
-                    Equipment = equipmentSecond,
-                    EquipmentType = new EquipmentType { Name = "TypeSecond", Equipment = equipmentSecond, EquipmentId = equipmentSecond.Id },
+                    Equipment = "EquipmentSecond",
+                    EquipmentType = "TypeSecond",
                     KKS = "10KAA22AA345"
                 }
             };
@@ -248,18 +230,12 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             // Arrange                 
             var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var equipmentService = new EquipmentService(dbContext);
-
-            var equipmentName = "EquipmentDup";
-            var equipmentTypeName = "TypeDup";
             var kksValue = "10KAA22AA545";
 
-            var equipment = new Equipment { Name = equipmentName, Id = Guid.NewGuid(), };
-            var equipmentType = new EquipmentType { Name = equipmentTypeName, Equipment = equipment, EquipmentId = equipment.Id, };
-
-            var kksEquipment = new KKSEquipmentModel
+            var kksEquipment = new KKSEquipmentRequest
             {
-                Equipment = equipment,
-                EquipmentType = equipmentType,
+                Equipment = "EquipmentDup",
+                EquipmentType = "TypeDup",
                 KKS = kksValue
             };
 

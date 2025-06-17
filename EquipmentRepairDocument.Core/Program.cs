@@ -86,25 +86,21 @@ await userService.AddAsync("Stan228337", "Qav228337");
 
 db.ChangeTracker.Clear();
 
-var equipmentNewFirst = new Equipment() { Name = "Клапан запорный", Description = "Клапан новый" };
+var equipmentNewFirst = "Клапан запорный";
 
-var equipmentTypeNewFirst = new EquipmentType() { Name = "НГ-2265", Equipment = equipmentNewFirst, EquipmentId = equipmentNewFirst.Id };
+var equipmentTypeNewFirst = "НГ-2265";
 
-var kksNewFirst = new KKSEquipmentModel()
+var kksNewFirst = new KKSEquipmentRequest()
 {
     Equipment = equipmentNewFirst,
     EquipmentType = equipmentTypeNewFirst,
     KKS = "20KAA22AA345 -- 20KAA21AA345 20KAA22AA345",
-    EquipmentId = equipmentNewFirst.Id,
-    EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
-var kksNewSecond = new KKSEquipmentModel()
+var kksNewSecond = new KKSEquipmentRequest()
 {
     Equipment = equipmentNewFirst,
     EquipmentType = equipmentTypeNewFirst,
     KKS = "20KAA11AA345 -- 20KAA21AA335 20KAA22AA325",
-    EquipmentId = equipmentNewFirst.Id,
-    EquipmentTypeId = equipmentTypeNewFirst.Id,
 };
 
 var equipmentService = new EquipmentService(db);

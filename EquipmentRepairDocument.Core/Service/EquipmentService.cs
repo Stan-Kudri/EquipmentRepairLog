@@ -9,11 +9,11 @@ namespace EquipmentRepairDocument.Core.Service
 {
     public class EquipmentService(AppDbContext dbContext)
     {
-        public async Task AddEquipmentAsync(KKSEquipmentModel kksEquipment)
+        public async Task AddEquipmentAsync(KKSEquipmentRequest kksEquipment)
         {
             BusinessLogicException.ThrowIfNull(kksEquipment);
-            BusinessLogicException.ThrowIfNull(kksEquipment.Equipment);
-            BusinessLogicException.ThrowIfNull(kksEquipment.EquipmentType);
+            BusinessLogicException.ThrowIfNullOrEmpty(kksEquipment.Equipment);
+            BusinessLogicException.ThrowIfNullOrEmpty(kksEquipment.EquipmentType);
             BusinessLogicException.ThrowIfNullOrEmpty(kksEquipment.KKS);
 
             var resultKKS = KKS.CreateArray(kksEquipment.KKS).ToList();
@@ -23,17 +23,17 @@ namespace EquipmentRepairDocument.Core.Service
                 throw new BusinessLogicException($"Error naming:{Environment.NewLine},{resultKKS.JoinErrorToString()}");
             }
 
-            var addKKSEquipments = resultKKS.ConvertAll(addItem => new KKSEquipmentModel
+            var addKKSEquipments = resultKKS.ConvertAll(addItem => new KKSEquipmentRequest
             {
                 Equipment = kksEquipment.Equipment,
                 EquipmentType = kksEquipment.EquipmentType,
                 KKS = addItem.Value!.Value,
             });
 
-            await AddMissingEquipmentDocuments(addKKSEquipments);
+            await AddEquipmentsCoreAsync(addKKSEquipments);
         }
 
-        public async Task AddRangeEquipmentAsync(List<KKSEquipmentModel> kksEquipments)
+        public async Task AddRangeEquipmentAsync(List<KKSEquipmentRequest> kksEquipments)
         {
             BusinessLogicException.ThrowIfNull(kksEquipments);
 
@@ -44,27 +44,29 @@ namespace EquipmentRepairDocument.Core.Service
         }
 
         // Disable BCC2008
-        private async Task AddMissingEquipmentDocuments(List<KKSEquipmentModel> models, CancellationToken cancellationToken = default)
+        private async Task AddEquipmentsCoreAsync(List<KKSEquipmentRequest> models, CancellationToken cancellationToken = default)
         {
             await dbContext.RunTransactionAsync(async _ =>
                     {
                         // Извлечение уникальных значений для оборудования, типов оборудования и KKS
-                        var equipmentNames = models.Select(model => model.Equipment.Name).Distinct().ToList();
-                        var equipmentTypeNames = models.Select(model => model.EquipmentType.Name).Distinct().ToList();
-                        var kksList = models.Select(model => model.KKS).Distinct().ToList();
+                        var equipmentNames = models.Select(model => model.Equipment).ToHashSet();
+                        var equipmentTypeNames = models.Select(model => model.EquipmentType).ToHashSet();
+                        var kksList = models.Select(model => model.KKS).ToHashSet();
 
                         // Поиск и добавление в БД отсутствующих видов оборудовния
                         var existingEquipmentNames = dbContext.Equipments.AsNoTracking()
                                                                          .Where(e => equipmentNames.Contains(e.Name))
                                                                          .Select(e => e.Name)
                                                                          .ToHashSet();
-                        var missingEquipments = models.Where(kks => !existingEquipmentNames.Contains(kks.Equipment.Name))
+                        var missingEquipments = models.Where(kks => !existingEquipmentNames.Contains(kks.Equipment))
                                                                   .Select(kks => kks.Equipment)
-                                                                  .Distinct()
-                                                                  .ToList();
+                                                                  .ToHashSet();
                         if (missingEquipments.Count != 0)
                         {
-                            await dbContext.Equipments.AddRangeAsync(missingEquipments, cancellationToken);
+                            var equipments = missingEquipments.Select(equipment => new Equipment() { Name = equipment })
+                                                              .ToList();
+
+                            await dbContext.Equipments.AddRangeAsync(equipments, cancellationToken);
                             await dbContext.SaveChangesAsync(cancellationToken);
                         }
 
@@ -73,52 +75,47 @@ namespace EquipmentRepairDocument.Core.Service
                                                                               .Where(equipmentType => equipmentTypeNames.Contains(equipmentType.Name))
                                                                               .Select(equipmentType => equipmentType.Name)
                                                                               .ToHashSet();
-                        var missingEquipmentType = models.Where(kksModel => !containsDBEquipmentType.Contains(kksModel.EquipmentType.Name))
-                                                                     .Select(kksModel => kksModel.EquipmentType)
-                                                                     .Distinct()
-                                                                     .ToList();
+                        var missingEquipmentType = models.Where(kksModel => !containsDBEquipmentType.Contains(kksModel.EquipmentType))
+                                                         .ToHashSet();
+
                         if (missingEquipmentType.Count != 0)
                         {
-                            var equipmentHashSet = new HashSet<string>(equipmentNames);
                             var equipmentFromDBByName = dbContext.Equipments.Where(equipment => equipmentNames.Contains(equipment.Name))
                                                                             .ToList();
 
                             // Создание списка с полными данными объекта для добавления
                             var newEquipmentTypes = missingEquipmentType.Join(equipmentFromDBByName,
-                                                                              missingItem => missingItem.Equipment?.Name,
+                                                                              missingItem => missingItem.Equipment,
                                                                               dbItem => dbItem.Name,
                                                                               (missingItem, dbEquipment) => new EquipmentType()
                                                                               {
-                                                                                  Name = missingItem.Name,
+                                                                                  Name = missingItem.EquipmentType,
                                                                                   EquipmentId = dbEquipment.Id,
                                                                                   Equipment = dbEquipment,
-                                                                              });
+                                                                              }).ToHashSet();
+
                             await dbContext.EquipmentTypes.AddRangeAsync(newEquipmentTypes, cancellationToken);
                             await dbContext.SaveChangesAsync(cancellationToken);
                         }
 
                         var equipmentsDictionary = dbContext.Equipments.AsNoTracking()
                                                                        .Where(eqipment => equipmentNames.Contains(eqipment.Name))
-                                                                       .GroupBy(eqipment => eqipment.Name)
-                                                                       .ToDictionary(e => e.Key, e => e.First());
+                                                                       .ToDictionary(e => e.Name);
 
                         var equipmentsTypeDictionary = dbContext.EquipmentTypes.AsNoTracking()
                                                                                .Where(equipmentType => equipmentTypeNames.Contains(equipmentType.Name))
-                                                                               .GroupBy(equipmentType => equipmentType.Name)
-                                                                               .ToDictionary(e => e.Key, e => e.First());
+                                                                               .ToDictionary(e => e.Name);
 
                         // Обновление объектов в kksEquipmentsModel
                         foreach (var item in models)
                         {
-                            if (equipmentsDictionary.TryGetValue(item.Equipment.Name, out var equipment))
+                            if (equipmentsDictionary.TryGetValue(item.Equipment, out var equipment))
                             {
-                                item.Equipment = equipment;
                                 item.EquipmentId = equipment.Id;
                             }
 
-                            if (equipmentsTypeDictionary.TryGetValue(item.EquipmentType.Name, out var equipmentType))
+                            if (equipmentsTypeDictionary.TryGetValue(item.EquipmentType, out var equipmentType))
                             {
-                                item.EquipmentType = equipmentType;
                                 item.EquipmentTypeId = equipmentType.Id;
                             }
                         }
@@ -126,8 +123,6 @@ namespace EquipmentRepairDocument.Core.Service
                         // Добавление данных для объектов
                         var kksEquipments = models.Select(item => new KKSEquipment()
                         {
-                            Equipment = item.Equipment,
-                            EquipmentType = item.EquipmentType,
                             KKS = item.KKS,
                             EquipmentId = item.EquipmentId,
                             EquipmentTypeId = item.EquipmentTypeId,
