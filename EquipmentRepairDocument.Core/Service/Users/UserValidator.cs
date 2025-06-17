@@ -1,6 +1,6 @@
-namespace EquipmentRepairDocument.Core.Data.Users
+namespace EquipmentRepairDocument.Core.Service.Users
 {
-    public class UserValidator
+    public class UserValidator : IUserValidator
     {
         public const int MinLengthUsername = 6;
 

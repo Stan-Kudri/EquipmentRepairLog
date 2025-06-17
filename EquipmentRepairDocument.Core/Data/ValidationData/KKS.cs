@@ -23,7 +23,7 @@ namespace EquipmentRepairDocument.Core.Data.ValidationData
             Value = value;
         }
 
-        public static IEnumerable<Result<KKS?>> CreateArray(string str)
+        public static IEnumerable<Result<KKS>> CreateArray(string str)
         {
             var arrayKKS = str.Split([',', ' ', '-', '.'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             foreach (var item in arrayKKS)
@@ -41,11 +41,11 @@ namespace EquipmentRepairDocument.Core.Data.ValidationData
 
                 if (obj is not null)
                 {
-                    yield return Result<KKS?>.Ok(obj);
+                    yield return Result<KKS>.Ok(obj);
                 }
                 else
                 {
-                    yield return Result<KKS?>.Error(errorMessage);
+                    yield return Result<KKS>.Error(errorMessage);
                 }
             }
         }
