@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EquipmentRepairDocument.Core.Data.ValidationData
 {
-    public class KKSEquipmentRequest : Entity
+    public class KKSEquipmentRequest
     {
         /// <summary>
         /// Идентификационный номер оборудования/детали.

@@ -12,12 +12,12 @@ namespace EquipmentRepairDocument.Core.Service.Users
             BusinessLogicException.ThrowIfNull(username);
             BusinessLogicException.ThrowIfNull(password);
 
-            if (!userValidator.ValidFormatUsername(username, out var messageValidUsername))
+            if (!userValidator.ValidateUsername(username, out var messageValidUsername))
             {
                 throw new BusinessLogicException(messageValidUsername);
             }
 
-            if (!userValidator.ValidFormatPassword(password, out var messageValidPass))
+            if (!userValidator.ValidatePassword(password, out var messageValidPass))
             {
                 throw new BusinessLogicException(messageValidPass);
             }

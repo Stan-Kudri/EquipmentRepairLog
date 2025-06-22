@@ -45,9 +45,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             // Act & Assert            
             var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var equipmentService = new EquipmentService(dbContext);
-            await equipmentService.Invoking(s => s.AddEquipmentAsync(null!))
-                                  .Should()
-                                  .ThrowAsync<BusinessLogicException>();
+            var error = await Assert.ThrowsAnyAsync<BusinessLogicException>(() => equipmentService.AddEquipmentAsync(null!));
+            error.Message.Should().Be(BusinessLogicException.MessageEmptyObject);
         }
 
         [Fact(DisplayName = "AddEquipmentAsync with null Equipment property should throw exception")]
@@ -59,15 +58,14 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 
             var kksEquipment = new KKSEquipmentRequest
             {
-                Equipment = null!, // intentionally null
+                Equipment = null!,
                 EquipmentType = "Type",
                 KKS = "GoodKKS"
             };
 
             // Act & Assert
-            await equipmentService.Invoking(e => e.AddEquipmentAsync(kksEquipment))
-                                  .Should()
-                                  .ThrowAsync<BusinessLogicException>();
+            var error = await Assert.ThrowsAnyAsync<BusinessLogicException>(() => equipmentService.AddEquipmentAsync(kksEquipment));
+            error.Message.Should().Be(BusinessLogicException.MessageNullOrEmptyStr);
         }
 
         [Fact(DisplayName = "AddEquipmentAsync with null EquipmentType property should throw exception")]
@@ -80,13 +78,13 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var kksEquipment = new KKSEquipmentRequest
             {
                 Equipment = "Equipment",
-                EquipmentType = null!, // intentionally null
+                EquipmentType = null!,
                 KKS = "GoodKKS"
             };
 
-            // Act & Assert
-            await equipmentService.Invoking(s => s.AddEquipmentAsync(kksEquipment))
-                          .Should().ThrowAsync<BusinessLogicException>();
+            // Act & Assert                                              
+            var error = await Assert.ThrowsAnyAsync<BusinessLogicException>(() => equipmentService.AddEquipmentAsync(kksEquipment));
+            error.Message.Should().Be(BusinessLogicException.MessageNullOrEmptyStr);
         }
 
         [Theory(DisplayName = "AddEquipmentAsync with null or empty KKS should throw exception")]
@@ -102,13 +100,12 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             {
                 Equipment = "Equipment",
                 EquipmentType = "Type",
-                KKS = kks // null or empty value
+                KKS = kks,
             };
 
-            // Act & Assert
-            await equipmentService.Invoking(s => s.AddEquipmentAsync(kksEquipment))
-                                  .Should()
-                                  .ThrowAsync<BusinessLogicException>();
+            // Act & Assert     
+            var error = await Assert.ThrowsAnyAsync<BusinessLogicException>(() => equipmentService.AddEquipmentAsync(kksEquipment));
+            error.Message.Should().Be(BusinessLogicException.MessageNullOrEmptyStr);
         }
 
         [Fact(DisplayName = "AddEquipmentAsync with error in KKS parsing should throw exception")]
@@ -122,7 +119,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             {
                 Equipment = "Equipment",
                 EquipmentType = "Type",
-                KKS = "error" // triggers an error result in KKS.CreateArray
+                KKS = "error",
             };
 
             // Act & Assert
@@ -153,22 +150,19 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             await equipmentService.AddEquipmentAsync(kksEquipment);
 
             // Assert - Check that the Equipment was added.
-            var equipments = await dbContext.Equipments.ToListAsync();
-            equipments.Should().HaveCount(1);
-            equipments.First().Name.Should().Be(equipmentName);
+            var equipment = await dbContext.Equipments.SingleAsync();
+            var equipmentType = await dbContext.EquipmentTypes.SingleAsync();
+            var kksEquipments = await dbContext.KKSEquipments.SingleAsync();
 
-            // Assert - Check that the EquipmentType was added and linked.
-            var equipmentTypes = await dbContext.EquipmentTypes.ToListAsync();
-            equipmentTypes.Should().HaveCount(1);
-            equipmentTypes.First().Name.Should().Be(equipmentTypeName);
-            equipmentTypes.First().EquipmentId.Should().Be(equipments.First().Id);
+            // Группируем проверки
+            equipment.Name.Should().Be(equipmentName);
 
-            // Assert - Check that KKSEquipment record was added.
-            var kksequipments = await dbContext.KKSEquipments.ToListAsync();
-            kksequipments.Should().HaveCount(1);
-            kksequipments.First().KKS.Should().Be(kksValue);
-            kksequipments.First().EquipmentId.Should().Be(equipments.First().Id);
-            kksequipments.First().EquipmentTypeId.Should().Be(equipmentTypes.First().Id);
+            equipmentType.Name.Should().Be(equipmentTypeName);
+            equipmentType.EquipmentId.Should().Be(equipment.Id);
+
+            kksEquipments.KKS.Should().Be(kksValue);
+            kksEquipments.EquipmentId.Should().Be(equipment.Id);
+            kksEquipments.EquipmentTypeId.Should().Be(equipmentType.Id);
         }
 
         [Fact(DisplayName = "AddRangeEquipmentAsync with valid inputs should add records to database")]
@@ -219,9 +213,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             // Arrange                 
             var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var equipmentService = new EquipmentService(dbContext);
-
-            await equipmentService.Invoking(s => s.AddRangeEquipmentAsync(null!))
-                          .Should().ThrowAsync<BusinessLogicException>();
+            var error = await Assert.ThrowsAnyAsync<BusinessLogicException>(() => equipmentService.AddEquipmentAsync(null!));
+            error.Message.Should().Be(BusinessLogicException.MessageEmptyObject);
         }
 
         [Fact(DisplayName = "Duplicate AddEquipmentAsync calls should not create duplicate KKSEquipment records")]
@@ -236,22 +229,18 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             {
                 Equipment = "EquipmentDup",
                 EquipmentType = "TypeDup",
-                KKS = kksValue
+                KKS = kksValue,
             };
 
-            // Act - Call the same addition twice.
             await equipmentService.AddEquipmentAsync(kksEquipment);
             await equipmentService.AddEquipmentAsync(kksEquipment);
 
-            // Assert - KKSEquipments should contain only one record.
-            var kksequipments = await dbContext.KKSEquipments.ToListAsync();
-            kksequipments.Should().HaveCount(1);
-
-            // Also, verify that Equipment and EquipmentType are not duplicated.
-            var equipments = await dbContext.Equipments.ToListAsync();
-            equipments.Should().HaveCount(1);
-            var equipmentTypes = await dbContext.EquipmentTypes.ToListAsync();
-            equipmentTypes.Should().HaveCount(1);
+            // Assert: во всех трёх таблицах ровно по одному элементу
+            (await Task.WhenAll(
+                dbContext.KKSEquipments.CountAsync(),
+                dbContext.Equipments.CountAsync(),
+                dbContext.EquipmentTypes.CountAsync()
+            )).Should().OnlyContain(c => c == 1);
         }
     }
 }

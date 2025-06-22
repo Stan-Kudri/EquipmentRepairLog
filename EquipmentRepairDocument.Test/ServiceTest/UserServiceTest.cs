@@ -39,7 +39,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             const string invalidMessage = "Invalid username passed.";
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var userValidator = Substitute.For<IUserValidator>();
-            userValidator.ValidFormatUsername(Arg.Any<string>(), out _)
+            userValidator.ValidateUsername(Arg.Any<string>(), out _)
                 .Returns(x =>
                 {
                     x[1] = invalidMessage;
@@ -59,8 +59,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             const string invalidMessage = "Invalid username passed.";
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var userValidator = Substitute.For<IUserValidator>();
-            userValidator.ValidFormatUsername(Arg.Any<string>(), out _).Returns(true);
-            userValidator.ValidFormatPassword(Arg.Any<string>(), out _)
+            userValidator.ValidateUsername(Arg.Any<string>(), out _).Returns(true);
+            userValidator.ValidatePassword(Arg.Any<string>(), out _)
                 .Returns(x =>
                 {
                     x[1] = invalidMessage;
