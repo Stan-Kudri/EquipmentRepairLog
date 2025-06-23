@@ -63,16 +63,17 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         [MemberData(nameof(DivisionItems))]
         public async Task Service_Should_Add_All_The_Item_Of_Database(List<Division> division)
         {
-            //Arrange
+            // Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var divisionFactory = new DivisionFactory();
             var divisionService = new DivisionService(dbContext, divisionFactory);
             await divisionService.AddRangeAsync(division);
+            dbContext.ChangeTracker.Clear();
 
-            //Act
+            // Act
             var actualDivisions = dbContext.Divisions.ToList();
 
-            //Assert
+            // Assert
             actualDivisions.Should().Equal(division);
         }
 
@@ -80,17 +81,18 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         [MemberData(nameof(AddItemDivision))]
         public async Task Service_Should_Add_The_Item_To_The_Database(List<Division> divisions, Division addDivision, List<Division> expectDivisions)
         {
-            //Arrange
+            // Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var divisionFactory = new DivisionFactory();
             var divisionService = new DivisionService(dbContext, divisionFactory);
             await divisionService.AddRangeAsync(divisions);
             await divisionService.AddAsync(addDivision);
+            dbContext.ChangeTracker.Clear();
 
-            //Act
+            // Act
             var actualDivisions = dbContext.Divisions.ToList();
 
-            //Assert
+            // Assert
             actualDivisions.Should().Equal(expectDivisions);
         }
 
@@ -98,17 +100,18 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         [MemberData(nameof(RemoveItemDivision))]
         public async Task Service_Should_Remove_Item_By_Number_Division_To_The_Database(List<Division> divisions, byte removeByNumber, List<Division> expectDivisions)
         {
-            //Arrange
+            // Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var divisionFactory = new DivisionFactory();
             var divisionService = new DivisionService(dbContext, divisionFactory);
             await divisionService.AddRangeAsync(divisions);
             await divisionService.RemoveAsync(removeByNumber);
+            dbContext.ChangeTracker.Clear();
 
-            //Act
+            // Act
             var actualDivisions = dbContext.Divisions.ToList();
 
-            //Assert
+            // Assert
             actualDivisions.Should().Equal(expectDivisions);
         }
     }

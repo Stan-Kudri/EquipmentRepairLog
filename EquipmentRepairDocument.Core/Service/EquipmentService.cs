@@ -3,7 +3,6 @@ using EquipmentRepairDocument.Core.Data.EquipmentModel;
 using EquipmentRepairDocument.Core.Data.ValidationData;
 using EquipmentRepairDocument.Core.DBContext;
 using EquipmentRepairDocument.Core.Exceptions;
-using EquipmentRepairDocument.Core.Extension;
 
 namespace EquipmentRepairDocument.Core.Service
 {
@@ -18,10 +17,7 @@ namespace EquipmentRepairDocument.Core.Service
 
             var resultKKS = KKS.CreateArray(kksEquipment.KKS).ToList();
 
-            if (resultKKS.Any(e => e.HasError))
-            {
-                throw new BusinessLogicException($"Error naming:{Environment.NewLine},{resultKKS.JoinErrorToString()}");
-            }
+            BusinessLogicException.ErrorNamingResult(resultKKS);
 
             var addKKSEquipments = resultKKS.ConvertAll(addItem => new KKSEquipmentRequest
             {

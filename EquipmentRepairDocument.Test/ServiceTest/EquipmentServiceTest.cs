@@ -32,6 +32,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 
             // Act
             await equipmentService.AddEquipmentAsync(kksEquipment);
+            dbContext.ChangeTracker.Clear();
             var actualKKSEquipment = await dbContext.KKSEquipments.FirstOrDefaultAsync(e => e.KKS == kksEquipment.KKS);
 
             // Assert
@@ -39,7 +40,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             Assert.Equal(kksEquipment.KKS, actualKKSEquipment.KKS);
         }
 
-        [Fact(DisplayName = "AddEquipmentAsync with null equipment should throw exception")]
+        [Fact(DisplayName = "AddEquipmentAsync with null equipment should throw BusinessLogicException")]
         public async Task AddEquipmentAsync_Null_Equipment_Throws_BusinessLogicException()
         {
             // Act & Assert            
@@ -49,7 +50,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             error.Message.Should().Be(BusinessLogicException.MessageEmptyObject);
         }
 
-        [Fact(DisplayName = "AddEquipmentAsync with null Equipment property should throw exception")]
+        [Fact(DisplayName = "AddEquipmentAsync with null Equipment property should throw BusinessLogicException")]
         public async Task AddEquipmentAsync_Null_Equipment_Property_Throws_BusinessLogicException()
         {
             // Arrange                 
@@ -68,7 +69,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             error.Message.Should().Be(BusinessLogicException.MessageNullOrEmptyStr);
         }
 
-        [Fact(DisplayName = "AddEquipmentAsync with null EquipmentType property should throw exception")]
+        [Fact(DisplayName = "AddEquipmentAsync with null EquipmentType property should throw BusinessLogicException")]
         public async Task AddEquipmentAsync_Null_EquipmentType_Property_Throws_BusinessLogicException()
         {
             // Arrange                 
@@ -87,7 +88,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             error.Message.Should().Be(BusinessLogicException.MessageNullOrEmptyStr);
         }
 
-        [Theory(DisplayName = "AddEquipmentAsync with null or empty KKS should throw exception")]
+        [Theory(DisplayName = "AddEquipmentAsync with null or empty KKS should throw BusinessLogicException")]
         [InlineData(null)]
         [InlineData("")]
         public async Task AddEquipmentAsync_Invalid_KKS_Throws_BusinessLogicException(string? kks)
@@ -103,7 +104,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
                 KKS = kks,
             };
 
-            // Act & Assert     
+            // Act & Assert
             var error = await Assert.ThrowsAnyAsync<BusinessLogicException>(() => equipmentService.AddEquipmentAsync(kksEquipment));
             error.Message.Should().Be(BusinessLogicException.MessageNullOrEmptyStr);
         }
@@ -123,9 +124,11 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             };
 
             // Act & Assert
+            await Assert.ThrowsAnyAsync<BusinessLogicException>(() => equipmentService.AddEquipmentAsync(kksEquipment));
+            /*
             await equipmentService.Invoking(e => e.AddEquipmentAsync(kksEquipment))
                                   .Should()
-                                  .ThrowAsync<BusinessLogicException>();
+                                  .ThrowAsync<BusinessLogicException>();*/
         }
 
         [Fact(DisplayName = "AddEquipmentAsync with valid input should add records to database")]
@@ -148,13 +151,15 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 
             // Act
             await equipmentService.AddEquipmentAsync(kksEquipment);
+            dbContext.ChangeTracker.Clear();
 
-            // Assert - Check that the Equipment was added.
+            // Assert
+            // Проверка добавления элементов
             var equipment = await dbContext.Equipments.SingleAsync();
             var equipmentType = await dbContext.EquipmentTypes.SingleAsync();
             var kksEquipments = await dbContext.KKSEquipments.SingleAsync();
 
-            // Группируем проверки
+            // Сгруппированные проверки
             equipment.Name.Should().Be(equipmentName);
 
             equipmentType.Name.Should().Be(equipmentTypeName);
@@ -193,26 +198,31 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 
             // Act
             await equipmentService.AddRangeEquipmentAsync(list);
+            dbContext.ChangeTracker.Clear();
 
-            // Assert - Two unique Equipments.
+            // Assert
+
+            // Two unique Equipments.
             var equipments = await dbContext.Equipments.ToListAsync();
             equipments.Should().HaveCount(2);
 
-            // Assert - Two EquipmentTypes.
+            // Two EquipmentTypes.
             var equipmentTypes = await dbContext.EquipmentTypes.ToListAsync();
             equipmentTypes.Should().HaveCount(2);
 
-            // Assert - Two KKSEquipments.
-            var kksequipments = await dbContext.KKSEquipments.ToListAsync();
-            kksequipments.Should().HaveCount(2);
+            // Two KKSEquipments.
+            var kksEquipments = await dbContext.KKSEquipments.ToListAsync();
+            kksEquipments.Should().HaveCount(2);
         }
 
         [Fact(DisplayName = "AddRangeEquipmentAsync with a null list should throw exception")]
         public async Task AddRangeEquipmentAsync_Null_List_Throws_BusinessLogicException()
         {
-            // Arrange                 
+            // Arrange
             var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var equipmentService = new EquipmentService(dbContext);
+
+            // Act & Assert
             var error = await Assert.ThrowsAnyAsync<BusinessLogicException>(() => equipmentService.AddEquipmentAsync(null!));
             error.Message.Should().Be(BusinessLogicException.MessageEmptyObject);
         }
@@ -234,8 +244,10 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 
             await equipmentService.AddEquipmentAsync(kksEquipment);
             await equipmentService.AddEquipmentAsync(kksEquipment);
+            dbContext.ChangeTracker.Clear();
 
-            // Assert: во всех трёх таблицах ровно по одному элементу
+            // Assert
+            // Во всех трёх таблицах ровно по одному элементу
             (await Task.WhenAll(
                 dbContext.KKSEquipments.CountAsync(),
                 dbContext.Equipments.CountAsync(),

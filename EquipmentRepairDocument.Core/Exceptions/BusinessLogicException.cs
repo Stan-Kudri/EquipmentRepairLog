@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using EquipmentRepairDocument.Core.Extension;
 
 namespace EquipmentRepairDocument.Core.Exceptions
 {
@@ -50,6 +51,14 @@ namespace EquipmentRepairDocument.Core.Exceptions
             if (string.IsNullOrEmpty(str))
             {
                 throw new BusinessLogicException(MessageNullOrEmptyStr);
+            }
+        }
+
+        public static void ErrorNamingResult<T>(List<Result<T>> results)
+        {
+            if (results.Any(e => e.HasError))
+            {
+                throw new BusinessLogicException($"Error naming:{Environment.NewLine},{results.JoinErrorToString()}");
             }
         }
 

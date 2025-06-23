@@ -63,16 +63,17 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         [MemberData(nameof(DocumentTypeItems))]
         public async Task Service_Should_Add_All_The_Item_Of_Database(List<DocumentType> documentTypes)
         {
-            //Arrange
+            // Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var documentTypeFactory = new DocumentTypeFactory();
             var documentTypeService = new DocumentTypeService(dbContext, documentTypeFactory);
             await documentTypeService.AddRangeAsync(documentTypes);
+            dbContext.ChangeTracker.Clear();
 
-            //Act
+            // Act
             var actualDocumentTypes = dbContext.DocumentTypes.ToList();
 
-            //Assert
+            // Assert
             actualDocumentTypes.Should().Equal(documentTypes);
         }
 
@@ -80,17 +81,18 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         [MemberData(nameof(AddItemDocumentType))]
         public async Task Service_Should_Add_The_Item_To_The_Database(List<DocumentType> DocumentTypes, DocumentType addDocumentType, List<DocumentType> expectDocumentTypes)
         {
-            //Arrange
+            // Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var documentTypeFactory = new DocumentTypeFactory();
             var documentTypeService = new DocumentTypeService(dbContext, documentTypeFactory);
             await documentTypeService.AddRangeAsync(DocumentTypes);
             await documentTypeService.AddAsync(addDocumentType);
+            dbContext.ChangeTracker.Clear();
 
-            //Act                                              
+            // Act                                              
             var actualDocumentTypes = dbContext.DocumentTypes.ToList();
 
-            //Assert
+            // Assert
             actualDocumentTypes.Should().Equal(expectDocumentTypes);
         }
 
@@ -98,17 +100,18 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         [MemberData(nameof(RemoveItemDocumentType))]
         public async Task Service_Should_Remove_Item_By_Number_DocumentType_To_The_Database(List<DocumentType> DocumentTypes, byte number, List<DocumentType> expectDocumentTypes)
         {
-            //Arrange
+            // Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
             var documentTypeFactory = new DocumentTypeFactory();
             var documentTypeService = new DocumentTypeService(dbContext, documentTypeFactory);
             await documentTypeService.AddRangeAsync(DocumentTypes);
             await documentTypeService.RemoveAsync(number);
+            dbContext.ChangeTracker.Clear();
 
-            //Act                                              
+            // Act                                              
             var actualDocumentTypes = dbContext.DocumentTypes.ToList();
 
-            //Assert
+            // Assert
             actualDocumentTypes.Should().Equal(expectDocumentTypes);
         }
     }
