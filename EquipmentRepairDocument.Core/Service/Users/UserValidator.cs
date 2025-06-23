@@ -1,12 +1,12 @@
-namespace EquipmentRepairDocument.Core.Data.Users
+namespace EquipmentRepairDocument.Core.Service.Users
 {
-    public class UserValidator
+    public class UserValidator : IUserValidator
     {
         public const int MinLengthUsername = 6;
 
         public const int MinLengthPass = 6;
 
-        public bool ValidFormatUsername(string username, out string message)
+        public bool ValidateUsername(string username, out string message)
         {
             message = string.Empty;
 
@@ -25,7 +25,7 @@ namespace EquipmentRepairDocument.Core.Data.Users
             return true;
         }
 
-        public bool ValidFormatPassword(string password, out string message)
+        public bool ValidatePassword(string password, out string message)
         {
             message = string.Empty;
 

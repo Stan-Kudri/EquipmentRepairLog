@@ -1,12 +1,15 @@
+using EquipmentRepairDocument.Core.Data.Users;
 using EquipmentRepairDocument.Core.DBContext;
 using EquipmentRepairDocument.Core.Exceptions;
-using EquipmentRepairDocument.Core.Service;
+using EquipmentRepairDocument.Core.Service.Users;
+using FluentAssertions;
+using NSubstitute;
 
 namespace EquipmentRepairDocument.Test.ServiceTest
 {
     public class UserServiceTest
     {
-        public static IEnumerable<object[]> AddUser =
+        public static IEnumerable<object[]> AddUser =>
         [
             [
                 "SergeySA",
@@ -14,7 +17,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             ]
         ];
 
-        public static IEnumerable<object[]> AddUserInvalidPassword =
+        public static IEnumerable<object[]> AddUserInvalidPassword =>
         [
             [
                 "SergeySA",
@@ -22,7 +25,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             ]
         ];
 
-        public static IEnumerable<object[]> AddUserInvalidUsername =
+        public static IEnumerable<object[]> AddUserInvalidUsername =>
         [
             [
                 "Ser",
@@ -30,20 +33,133 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             ]
         ];
 
+        [Fact(DisplayName = "Should throw exception when username format is invalid")]
+        public async Task AddAsync_Invalid_Username_Format_Throws_Exception()
+        {
+            // Arrange
+            const string invalidMessage = "Invalid username passed.";
+            using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
+            var userValidator = Substitute.For<IUserValidator>();
+            userValidator.ValidateUsername(Arg.Any<string>(), out _)
+                .Returns(x =>
+                {
+                    x[1] = invalidMessage;
+                    return false;
+                });
+            var passwordHasher = Substitute.For<IPasswordHasher>();
+            var service = new UserService(dbContext, userValidator, passwordHasher);
+
+            // Act
+            var error = await Assert.ThrowsAnyAsync<BusinessLogicException>(() => service.AddAsync("username", "password"));
+
+            // Assert
+            error.Message.Should().Be(invalidMessage);
+        }
+
+        [Fact(DisplayName = "Should throw exception when password format is invalid")]
+        public async Task AddAsync_Invalid_Password_Format_Throws_Exception()
+        {
+            // Arrange
+            const string invalidMessage = "Invalid username passed.";
+            using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
+            var userValidator = Substitute.For<IUserValidator>();
+            userValidator.ValidateUsername(Arg.Any<string>(), out _).Returns(true);
+            userValidator.ValidatePassword(Arg.Any<string>(), out _)
+                .Returns(x =>
+                {
+                    x[1] = invalidMessage;
+                    return false;
+                });
+            var passwordHasher = Substitute.For<IPasswordHasher>();
+            var service = new UserService(dbContext, userValidator, passwordHasher);
+
+            // Act
+            var error = await Assert.ThrowsAnyAsync<BusinessLogicException>(() => service.AddAsync("username", "password"));
+
+            // Assert
+            error.Message.Should().Be(invalidMessage);
+        }
+
+        [Fact(DisplayName = "Should throw exception when username is null")]
+        public async Task AddAsync_Username_Is_Null_Throws_Exception()
+        {
+            // Arrange
+            using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
+            var userValidator = Substitute.For<IUserValidator>();
+            var passwordHasher = Substitute.For<IPasswordHasher>();
+            var service = new UserService(dbContext, userValidator, passwordHasher);
+
+            // Act & Assert
+            await FluentActions.Invoking(() => service.AddAsync(null!, "password"))
+                               .Should()
+                               .ThrowAsync<BusinessLogicException>();
+        }
+
+        [Fact(DisplayName = "Should throw exception when password is null")]
+        public async Task AddAsync_Password_Is_Null_Throws_Exception()
+        {
+            // Arrange
+            using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
+            var userValidator = Substitute.For<IUserValidator>();
+            var passwordHasher = Substitute.For<IPasswordHasher>();
+            var service = new UserService(dbContext, userValidator, passwordHasher);
+
+            // Act & Assert
+            await FluentActions.Invoking(() => service.AddAsync("username", null!))
+                               .Should()
+                               .ThrowAsync<BusinessLogicException>();
+        }
+
+        [Fact(DisplayName = "Should return false when username already exists")]
+        public async Task IsFreeUsername_Existing_Username_Returns_False_Async()
+        {
+            // Arrange
+            using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
+            var userValidator = Substitute.For<IUserValidator>();
+            var passwordHasher = Substitute.For<IPasswordHasher>();
+            var service = new UserService(dbContext, userValidator, passwordHasher);
+
+            // Act
+            dbContext.Users.Add(new User("existingUser", "hash"));
+            await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
+            var result = service.IsFreeUsername("existingUser");
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact(DisplayName = "Should return true when username does not exist")]
+        public async Task IsFreeUsername_Non_Existing_Username_Returns_True_Async()
+        {
+            // Arrange
+            using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
+            var userValidator = Substitute.For<IUserValidator>();
+            var passwordHasher = Substitute.For<IPasswordHasher>();
+            var service = new UserService(dbContext, userValidator, passwordHasher);
+
+            // Act
+            var result = service.IsFreeUsername("newUser");
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
         [Theory]
         [MemberData(nameof(AddUser))]
         public async Task Service_Should_Add_User_Of_Database(string userName, string userPassword)
         {
-            //Arrange
+            // Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
-            var userService = new UserService(dbContext);
+            var userService = new UserService(dbContext, new UserValidator(), new BCryptPasswordHasher());
             await userService.AddAsync(userName, userPassword);
-            var expectUser = userService.GetUserByPassword(userName, userPassword);
+            dbContext.ChangeTracker.Clear();
+            var expectUser = userService.GetUser(userName, userPassword);
 
-            //Act
+            // Act
             var actualUser = dbContext.Users.FirstOrDefault(e => e.Username == userName);
 
-            //Assert
+            // Assert
             actualUser?.Equals(expectUser);
         }
 
@@ -52,11 +168,11 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         [MemberData(nameof(AddUserInvalidUsername))]
         public async Task Did_Not_Happen_Add_Items_Because_Invalid_Format_Data(string userName, string userPassword)
         {
-            //Arrange
+            // Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
-            var userService = new UserService(dbContext);
+            var userService = new UserService(dbContext, new UserValidator(), new BCryptPasswordHasher());
 
-            //Assert
+            // Assert
             await Assert.ThrowsAsync<BusinessLogicException>(async () => await userService.AddAsync(userName, userPassword));
         }
 
@@ -64,12 +180,13 @@ namespace EquipmentRepairDocument.Test.ServiceTest
         [MemberData(nameof(AddUser))]
         public async Task Did_Not_Happen_Add_Items_Because_Username_Exists(string userName, string userPassword)
         {
-            //Arrange
+            // Arrange
             using var dbContext = await TestDBContextFactory.Create<AppDbContext>();
-            var userService = new UserService(dbContext);
+            var userService = new UserService(dbContext, new UserValidator(), new BCryptPasswordHasher());
             await userService.AddAsync(userName, userPassword);
+            dbContext.ChangeTracker.Clear();
 
-            //Assert
+            // Act & Assert
             await Assert.ThrowsAsync<BusinessLogicException>(async () => await userService.AddAsync(userName, userPassword));
         }
     }

@@ -3,26 +3,21 @@ using EquipmentRepairDocument.Core.DBContext;
 using EquipmentRepairDocument.Core.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace EquipmentRepairDocument.Core.Service
+namespace EquipmentRepairDocument.Core.Service.Users
 {
-    public class UserService(AppDbContext dbContext, UserValidator userValidator)
+    public class UserService(AppDbContext dbContext, IUserValidator userValidator, IPasswordHasher passwordHasher)
     {
-        public UserService(AppDbContext dbContext)
-            : this(dbContext, new UserValidator())
-        {
-        }
-
         public async Task AddAsync(string username, string password, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(username);
             BusinessLogicException.ThrowIfNull(password);
 
-            if (!userValidator.ValidFormatUsername(username, out var messageValidUsername))
+            if (!userValidator.ValidateUsername(username, out var messageValidUsername))
             {
                 throw new BusinessLogicException(messageValidUsername);
             }
 
-            if (!userValidator.ValidFormatPassword(password, out var messageValidPass))
+            if (!userValidator.ValidatePassword(password, out var messageValidPass))
             {
                 throw new BusinessLogicException(messageValidPass);
             }
@@ -39,15 +34,12 @@ namespace EquipmentRepairDocument.Core.Service
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public User? GetUserPasswordHash(string username, string passwordHash)
+        public User? GetUser(string username, string passwordHash)
             => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username && e.PasswordHash == passwordHash);
-
-        public User? GetUserByPassword(string username, string password)
-            => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username && e.PasswordHash == Hash(password));
 
         public bool IsFreeUsername(string username)
             => dbContext.Users.AsNoTracking().FirstOrDefault(e => e.Username == username) == null;
 
-        private string Hash(string password) => BCrypt.Net.BCrypt.HashPassword(password);
+        private string Hash(string password) => passwordHasher.Hash(password);
     }
 }

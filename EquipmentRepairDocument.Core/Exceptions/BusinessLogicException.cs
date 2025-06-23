@@ -1,9 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
+using EquipmentRepairDocument.Core.Extension;
 
 namespace EquipmentRepairDocument.Core.Exceptions
 {
     public class BusinessLogicException : ApplicationException
     {
+        public const string MessageEmptyObject = "The passed object is empty.";
+        public const string MessageNullOrEmptyStr = "The passed string is empty or null.";
+
         public BusinessLogicException(string message)
             : base(message)
         {
@@ -38,7 +42,7 @@ namespace EquipmentRepairDocument.Core.Exceptions
         {
             if (obj is null)
             {
-                throw new BusinessLogicException("The passed object is empty.");
+                throw new BusinessLogicException(MessageEmptyObject);
             }
         }
 
@@ -46,7 +50,15 @@ namespace EquipmentRepairDocument.Core.Exceptions
         {
             if (string.IsNullOrEmpty(str))
             {
-                throw new BusinessLogicException("The passed string is empty.");
+                throw new BusinessLogicException(MessageNullOrEmptyStr);
+            }
+        }
+
+        public static void ErrorNamingResult<T>(List<Result<T>> results)
+        {
+            if (results.Any(e => e.HasError))
+            {
+                throw new BusinessLogicException($"Error naming:{Environment.NewLine},{results.JoinErrorToString()}");
             }
         }
 
