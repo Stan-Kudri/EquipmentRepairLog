@@ -247,12 +247,14 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             dbContext.ChangeTracker.Clear();
 
             // Assert
-            // Во всех трёх таблицах ровно по одному элементу
-            (await Task.WhenAll(
-                dbContext.KKSEquipments.CountAsync(),
-                dbContext.Equipments.CountAsync(),
-                dbContext.EquipmentTypes.CountAsync()
-            )).Should().OnlyContain(c => c == 1);
+            // Во всех трёх таблицах по одному элементу (Нет дубликата)
+            var equipmentCount = await dbContext.KKSEquipments.CountAsync();
+            var kksCount = await dbContext.Equipments.CountAsync();
+            var typeEquipmentCount = await dbContext.EquipmentTypes.CountAsync();
+
+            equipmentCount.Should().Be(1);
+            kksCount.Should().Be(1);
+            typeEquipmentCount.Should().Be(1);
         }
     }
 }
