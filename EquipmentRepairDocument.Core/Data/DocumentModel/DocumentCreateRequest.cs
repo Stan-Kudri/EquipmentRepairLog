@@ -1,5 +1,5 @@
-using EquipmentRepairDocument.Core.Data.EquipmentModel;
 using EquipmentRepairDocument.Core.Data.StandardModel;
+using EquipmentRepairDocument.Core.Data.ValidationData;
 
 namespace EquipmentRepairDocument.Core.Data.DocumentModel
 {
@@ -50,7 +50,7 @@ namespace EquipmentRepairDocument.Core.Data.DocumentModel
         /// <summary>
         /// Список KKS оборудования.
         /// </summary>
-        public List<KKSEquipment>? KKSEquipment { get; set; } = new List<KKSEquipment>();
+        public List<KKSEquipmentRequest>? KKSEquipment { get; set; } = new List<KKSEquipmentRequest>();
 
         /// <summary>
         /// Исполнители работ.

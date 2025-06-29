@@ -8,7 +8,8 @@ using EquipmentRepairDocument.Core.Service;
 using EquipmentRepairDocument.Core.Service.Users;
 
 using var db = await new DbContextFactory().CreateAsync();
-var documentFactory = new DocumentFactroy(db);
+var equipmentService = new EquipmentService(db);
+var documentFactory = new DocumentFactory(db, equipmentService);
 var documentService = new DocumentService(db, documentFactory);
 
 var divisionExe = new DivisionFactory().Create("Отдел под", "ОППР", 0);
@@ -19,8 +20,7 @@ db.Equipments.Add(equipment);
 var equipmentType = new EquipmentType() { Name = "КПЛВ.49833-12", Equipment = equipment, EquipmentId = equipment.Id };
 db.EquipmentTypes.Add(equipmentType);
 
-var kks = new KKSEquipment() { Equipment = equipment, EquipmentType = equipmentType, KKS = "10KAA22AA345", EquipmentId = equipment.Id, EquipmentTypeId = equipmentType.Id };
-db.KKSEquipments.Add(kks);
+var kks = new KKSEquipmentRequest() { Equipment = "КПЛВ.49833-12", EquipmentType = "Клапан запорный", KKS = "10KAA22AA345" };
 
 var division = new Division() { Name = "Реакторный цех", Abbreviation = "РЦ", Number = 21 };
 db.Divisions.Add(division);
@@ -57,7 +57,7 @@ var docFirst = new DocumentCreateRequest()
     DocumentType = docTypeFirst,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    KKSEquipment = new List<KKSEquipment>() { kks },
+    KKSEquipment = new List<KKSEquipmentRequest>() { kks },
     Perfomers = new List<Perfomer>() { perfomer },
     DivisionId = division.Id,
     DocumentTypeId = docTypeFirst.Id,
@@ -70,7 +70,7 @@ var docSecond = new DocumentCreateRequest()
     DocumentType = docTypeSecond,
     RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
-    KKSEquipment = new List<KKSEquipment>() { kks },
+    KKSEquipment = new List<KKSEquipmentRequest>() { kks },
     Perfomers = new List<Perfomer>() { perfomer },
     DivisionId = division.Id,
     DocumentTypeId = docTypeSecond.Id,
@@ -103,5 +103,4 @@ var kksNewSecond = new KKSEquipmentRequest()
     KKS = "20KAA11AA345 -- 20KAA21AA335 20KAA22AA325",
 };
 
-var equipmentService = new EquipmentService(db);
 await equipmentService.AddRangeEquipmentAsync([kksNewFirst, kksNewSecond]);

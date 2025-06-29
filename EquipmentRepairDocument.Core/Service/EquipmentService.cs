@@ -8,7 +8,7 @@ namespace EquipmentRepairDocument.Core.Service
 {
     public class EquipmentService(AppDbContext dbContext)
     {
-        public async Task AddEquipmentAsync(KKSEquipmentRequest kksEquipment)
+        public async Task<List<Guid>> AddEquipmentAsync(KKSEquipmentRequest kksEquipment)
         {
             BusinessLogicException.ThrowIfNull(kksEquipment);
             BusinessLogicException.ThrowIfNullOrEmpty(kksEquipment.Equipment);
@@ -26,23 +26,26 @@ namespace EquipmentRepairDocument.Core.Service
                 KKS = addItem.Value!.Value,
             });
 
-            await AddEquipmentsCoreAsync(addKKSEquipments);
+            return await AddEquipmentsCoreAsync(addKKSEquipments);
         }
 
-        public async Task AddRangeEquipmentAsync(List<KKSEquipmentRequest> kksEquipments)
+        public async Task<List<Guid>> AddRangeEquipmentAsync(List<KKSEquipmentRequest> kksEquipments)
         {
             BusinessLogicException.ThrowIfNull(kksEquipments);
+            var listKKSId = new List<Guid>();
 
             foreach (var item in kksEquipments)
             {
-                await AddEquipmentAsync(item);
+                listKKSId.AddRange(await AddEquipmentAsync(item));
             }
+
+            return listKKSId;
         }
 
         // Disable BCC2008
-        private async Task AddEquipmentsCoreAsync(List<KKSEquipmentRequest> models, CancellationToken cancellationToken = default)
+        private async Task<List<Guid>> AddEquipmentsCoreAsync(List<KKSEquipmentRequest> models, CancellationToken cancellationToken = default)
         {
-            await dbContext.RunTransactionAsync(async _ =>
+            return await dbContext.RunTransactionAsync(async _ =>
                     {
                         // Извлечение уникальных значений для оборудования, типов оборудования и KKS
                         var equipmentNames = models.Select(model => model.Equipment).ToHashSet();
@@ -127,23 +130,26 @@ namespace EquipmentRepairDocument.Core.Service
                         // Получение существующих KKS из БД
                         var existingKKS = dbContext.KKSEquipments.AsNoTracking()
                                                                  .Where(kks => kksList.Contains(kks.KKS))
-                                                                 .Select(kks => new { kks.EquipmentId, kks.EquipmentTypeId, kks.KKS })
+                                                                 .Select(kks => new { kks.EquipmentId, kks.EquipmentTypeId, kks.KKS, kks.Id })
                                                                  .ToHashSet();
 
                         // Получение отсутствующих KKS в БД
-                        var missingKKSEquipments = kksEquipments.Where(kks => !existingKKS.Any(db => db.KKS == kks.KKS)).ToList();
+                        var missingKKS = kksEquipments.Where(kks => !existingKKS.Any(db => db.KKS == kks.KKS)).ToList();
 
                         // Добавление новых KKS со всеми данными в БД
-                        await dbContext.KKSEquipments.AddRangeAsync(missingKKSEquipments, cancellationToken);
+                        await dbContext.KKSEquipments.AddRangeAsync(missingKKS, cancellationToken);
 
                         // Фильтрация записей, если отсутствует KKS или данные отличаются – добавляем новые записи
-                        var missingKKS = kksEquipments.Where(kks => existingKKS.Any(db => db.KKS == kks.KKS &&
+                        var missingKKSDistinktType = kksEquipments.Where(kks => existingKKS.Any(db => db.KKS == kks.KKS &&
                                                                                           (db.EquipmentId != kks.EquipmentId ||
                                                                                            db.EquipmentTypeId != kks.EquipmentTypeId))).ToList();
 
-                        await dbContext.KKSEquipments.AddRangeAsync(missingKKS, cancellationToken);
+                        await dbContext.KKSEquipments.AddRangeAsync(missingKKSDistinktType, cancellationToken);
                         await dbContext.SaveChangesAsync(cancellationToken);
-                        return DBNull.Value;
+                        return existingKKS.Select(e => e.Id)
+                                          .Concat(missingKKS.Select(e => e.Id))
+                                          .Concat(missingKKSDistinktType.Select(e => e.Id))
+                                          .ToList();
                     },
                     cancellationToken);
         }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairDocument.Core.Service
 {
-    public class DocumentService(AppDbContext dbContext, DocumentFactroy documentFactroy)
+    public class DocumentService(AppDbContext dbContext, DocumentFactory documentFactroy)
     {
         public async Task AddAllDocumentsAsync(List<DocumentCreateRequest> documentCreateRequests, CancellationToken cancellationToken = default)
         {
@@ -19,9 +19,13 @@ namespace EquipmentRepairDocument.Core.Service
                 documentCreateRequests.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
 
                 // Создание документов для добавления в БД
-                var documents = await documentFactroy.CreateListDocumentAsync(documentCreateRequests, cancellationToken);
-                await dbContext.Documents.AddRangeAsync(documents, cancellationToken);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                foreach (var documentRequest in documentCreateRequests)
+                {
+                    var document = await documentFactroy.CreateDocumentAsync(documentRequest, cancellationToken);
+                    await dbContext.Documents.AddAsync(document, cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                }
+
                 return DBNull.Value;
             },
             cancellationToken);
