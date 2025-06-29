@@ -7,6 +7,7 @@ namespace EquipmentRepairDocument.Core.Exceptions
     {
         public const string MessageEmptyObject = "The passed object is empty.";
         public const string MessageNullOrEmptyStr = "The passed string is empty or null.";
+        public const string MessageEmptyCollection = "The passed collection is empty.";
 
         public BusinessLogicException(string message)
             : base(message)
@@ -51,6 +52,19 @@ namespace EquipmentRepairDocument.Core.Exceptions
             if (string.IsNullOrEmpty(str))
             {
                 throw new BusinessLogicException(MessageNullOrEmptyStr);
+            }
+        }
+
+        public static void ThrowIfNullOrEmptyCollection<T>([NotNull] IEnumerable<T>? collection)
+        {
+            if (collection is null)
+            {
+                throw new BusinessLogicException(MessageEmptyObject);
+            }
+
+            if (!collection.Any())
+            {
+                throw new BusinessLogicException(MessageEmptyCollection);
             }
         }
 

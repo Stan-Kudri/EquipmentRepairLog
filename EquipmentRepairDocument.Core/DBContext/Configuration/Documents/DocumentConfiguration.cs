@@ -9,7 +9,7 @@ namespace EquipmentRepairDocument.Core.DBContext.Configuration.Documents
         protected override void ConfigureModel(EntityTypeBuilder<Document> builder)
         {
             builder.ToTable("document");
-            builder.Property(x => x.RegistrationDate).IsRequired().HasColumnType("DATETIME").HasColumnName("date_registration").HasDefaultValue(DateTime.Now);
+            builder.Property(x => x.RegistrationDate).IsRequired().HasColumnName("date_registration").HasDefaultValue(DateTime.Now);
             builder.Property(x => x.RepairDate).IsRequired().HasColumnName("repair_date");
             builder.Property(x => x.ChangeDateRegistrNumber).HasColumnName("change_date_registration").HasDefaultValue(null);
             builder.Property(x => x.OrdinalNumber).IsRequired().HasColumnName("ordinal_number");
