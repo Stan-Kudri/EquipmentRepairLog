@@ -49,6 +49,7 @@ namespace EquipmentRepairDocument.Core.FactoryData
             BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.Perfomers);
 
             var executeRepairDoc = await dbContext.Documents.Include(erd => erd.ExecuteRepairDocuments)
+                                                             .AsNoTracking()
                                                              .Where(e => e.RegistrationNumber == registrationNumberDoc)
                                                              .SelectMany(e => e.ExecuteRepairDocuments)
                                                              .FirstOrDefaultAsync(cancellationToken)

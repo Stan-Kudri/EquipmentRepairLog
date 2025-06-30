@@ -25,7 +25,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 
             var division = new DivisionFactory().Create("Реакторный цех", "РЦ", 21);
             var documentType = new DocumentTypeFactory().Create("Ведомость выполненных работ", "ВВР", 15, true);
-            var repairFacility = new RepairFacility() { Name = "Реакторный цех", Abbreviation = "РЦ", Number = 34 };
+            var repairFacility = new RepairFacility() { Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1", Number = 1 };
             var perfomer = new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" };
             var erd = new ExecuteRepairDocument();
 
@@ -35,8 +35,6 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             await dbContext.ExecuteRepairDocuments.AddAsync(erd);
             await dbContext.SaveChangesAsync();
 
-            var executeRepairDocumnets = new List<ExecuteRepairDocument> { erd };
-
             var requestFirst = new DocumentCreateRequest
             {
                 RegistrationDate = DateTime.UtcNow,
@@ -45,13 +43,14 @@ namespace EquipmentRepairDocument.Test.ServiceTest
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = new List<KKSEquipmentRequest>() { kksEquipmentRequestFirst },
-                ExecuteRepairDocuments = executeRepairDocumnets,
                 Perfomers = new List<Perfomer>() { perfomer },
+                ExecuteRepairDocuments = new List<ExecuteRepairDocument> { erd },
             };
 
             var document = await documentFactory.CreateDocumentAsync(requestFirst, CancellationToken.None);
             await dbContext.Documents.AddAsync(document, CancellationToken.None);
             await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
 
             var kksEquipmentRequestSecond = new KKSEquipmentRequest("20KAA22AA366 20KAA21AA335", "Клапан запорный", "НГ-2265");
             var registrationNumber = document.RegistrationNumber;
@@ -89,7 +88,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 
             var division = new DivisionFactory().Create("Реакторный цех", "РЦ", 21);
             var documentType = new DocumentTypeFactory().Create("Ведомость выполненных работ", "ВВР", 15, false);
-            var repairFacility = new RepairFacility() { Name = "Реакторный цех", Abbreviation = "РЦ", Number = 34 };
+            var repairFacility = new RepairFacility() { Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1", Number = 1 };
             var perfomer = new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" };
             var erd = new ExecuteRepairDocument();
 
@@ -173,7 +172,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
 
             var division = new DivisionFactory().Create("Реакторный цех", "РЦ", 21);
             var documentType = new DocumentTypeFactory().Create("Ведомость выполненных работ", "ВВР", 15, true);
-            var repairFacility = new RepairFacility() { Name = "Реакторный цех", Abbreviation = "РЦ", Number = 34 };
+            var repairFacility = new RepairFacility() { Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1", Number = 1 };
             var perfomer = new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" };
             var erd = new ExecuteRepairDocument();
 
