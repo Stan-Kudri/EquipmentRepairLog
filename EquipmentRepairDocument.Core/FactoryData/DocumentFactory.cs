@@ -13,9 +13,9 @@ namespace EquipmentRepairDocument.Core.FactoryData
         public async Task<Document> CreateDocumentAsync(DocumentCreateRequest documentCreateRequest, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(documentCreateRequest);
-            BusinessLogicException.ThrowIfNull(documentCreateRequest.ExecuteRepairDocuments);
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.ExecuteRepairDocumentsId);
             BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.KKSEquipment);
-            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.Perfomers);
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.PerfomersId);
 
             var kksIdEquipments = await equipmentService.AddRangeEquipmentAsync(documentCreateRequest.KKSEquipment);
             var kksEquipment = dbContext.KKSEquipments.Where(kks => kksIdEquipments.Contains(kks.Id));
@@ -24,19 +24,22 @@ namespace EquipmentRepairDocument.Core.FactoryData
             // Создание/установка порядкового и регистрационного номера
             var (OrdinalNumber, RegistrationNumber) = await GetNumberDocument(documentCreateRequest, cancellationToken);
 
+            var perfomers = dbContext.Perfomers.Where(e => documentCreateRequest.PerfomersId.Contains(e.Id));
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(perfomers);
+
+            var erd = dbContext.ExecuteRepairDocuments.Where(e => documentCreateRequest.ExecuteRepairDocumentsId.Contains(e.Id));
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(erd);
+
             return new Document()
             {
-                Division = documentCreateRequest.Division,
-                DocumentType = documentCreateRequest.DocumentType,
-                RepairFacility = documentCreateRequest.RepairFacility,
                 RepairDate = documentCreateRequest.RepairDate,
                 KKSEquipment = kksEquipment.ToList(),
-                Perfomers = documentCreateRequest.Perfomers,
+                Perfomers = perfomers.ToList(),
                 DivisionId = documentCreateRequest.DivisionId,
                 DocumentTypeId = documentCreateRequest.DocumentTypeId,
                 RepairFacilityId = documentCreateRequest.RepairFacilityId,
                 RegistrationDate = documentCreateRequest.RegistrationDate,
-                ExecuteRepairDocuments = documentCreateRequest.ExecuteRepairDocuments,
+                ExecuteRepairDocuments = erd.ToList(),
                 OrdinalNumber = OrdinalNumber,
                 RegistrationNumber = RegistrationNumber,
             };
@@ -46,16 +49,15 @@ namespace EquipmentRepairDocument.Core.FactoryData
         {
             BusinessLogicException.ThrowIfNull(documentCreateRequest);
             BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.KKSEquipment);
-            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.Perfomers);
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.PerfomersId);
 
             var executeRepairDoc = await dbContext.Documents.Include(erd => erd.ExecuteRepairDocuments)
-                                                             .AsNoTracking()
                                                              .Where(e => e.RegistrationNumber == registrationNumberDoc)
                                                              .SelectMany(e => e.ExecuteRepairDocuments)
                                                              .FirstOrDefaultAsync(cancellationToken)
                                                              ?? throw NotFoundException.Create<ExecuteRepairDocument, string>(nameof(registrationNumberDoc), registrationNumberDoc);
 
-            documentCreateRequest.ExecuteRepairDocuments.Add(executeRepairDoc);
+            documentCreateRequest.ExecuteRepairDocumentsId.Add(executeRepairDoc.Id);
             return await CreateDocumentAsync(documentCreateRequest, cancellationToken);
         }
 

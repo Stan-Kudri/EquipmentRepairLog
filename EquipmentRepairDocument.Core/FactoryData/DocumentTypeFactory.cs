@@ -18,7 +18,7 @@ namespace EquipmentRepairDocument.Core.FactoryData
                 Name = result.Name,
                 Abbreviation = result.Abbreviation,
                 ExecutiveRepairDocNumber = executiveRepairDocNumber,
-                IsOnlyTypeDocInERD = isOnlyTypeDocInERD,
+                MultipleUseInERD = isOnlyTypeDocInERD,
             };
         }
     }

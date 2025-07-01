@@ -29,6 +29,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var perfomer = new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" };
             var erd = new ExecuteRepairDocument();
 
+            await dbContext.Perfomers.AddRangeAsync(perfomer);
+            await dbContext.ExecuteRepairDocuments.AddRangeAsync(erd);
             await dbContext.Divisions.AddAsync(division);
             await dbContext.DocumentTypes.AddAsync(documentType);
             await dbContext.RepairFacilities.AddAsync(repairFacility);
@@ -43,8 +45,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = new List<KKSEquipmentRequest>() { kksEquipmentRequestFirst },
-                Perfomers = new List<Perfomer>() { perfomer },
-                ExecuteRepairDocuments = new List<ExecuteRepairDocument> { erd },
+                PerfomersId = new List<Guid>() { perfomer.Id },
+                ExecuteRepairDocumentsId = new List<Guid>() { erd.Id, },
             };
 
             var document = await documentFactory.CreateDocumentAsync(requestFirst, CancellationToken.None);
@@ -63,7 +65,7 @@ namespace EquipmentRepairDocument.Test.ServiceTest
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = new List<KKSEquipmentRequest>() { kksEquipmentRequestSecond },
-                Perfomers = new List<Perfomer>() { perfomer },
+                PerfomersId = new List<Guid>() { perfomer.Id },
             };
 
             dbContext.ChangeTracker.Clear();
@@ -92,6 +94,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var perfomer = new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" };
             var erd = new ExecuteRepairDocument();
 
+            await dbContext.Perfomers.AddRangeAsync(perfomer);
+            await dbContext.ExecuteRepairDocuments.AddRangeAsync(erd);
             await dbContext.Divisions.AddAsync(division);
             await dbContext.DocumentTypes.AddAsync(documentType);
             await dbContext.RepairFacilities.AddAsync(repairFacility);
@@ -108,8 +112,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = new List<KKSEquipmentRequest>() { kksEquipmentRequest },
-                ExecuteRepairDocuments = executeRepairDocumnets,
-                Perfomers = new List<Perfomer>() { perfomer },
+                ExecuteRepairDocumentsId = executeRepairDocumnets.Select(e => e.Id).ToList(),
+                PerfomersId = new List<Guid>() { perfomer.Id },
             };
 
             var document = await documentFactory.CreateDocumentAsync(request, CancellationToken.None);
@@ -176,6 +180,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
             var perfomer = new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" };
             var erd = new ExecuteRepairDocument();
 
+            await dbContext.Perfomers.AddRangeAsync(perfomer);
+            await dbContext.ExecuteRepairDocuments.AddRangeAsync(erd);
             await dbContext.Divisions.AddAsync(division);
             await dbContext.DocumentTypes.AddAsync(documentType);
             await dbContext.RepairFacilities.AddAsync(repairFacility);
@@ -192,8 +198,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = new List<KKSEquipmentRequest>() { kksEquipmentRequestFirst },
-                Perfomers = new List<Perfomer>() { perfomer },
-                ExecuteRepairDocuments = executeRepairDocumnets,
+                PerfomersId = new List<Guid>() { perfomer.Id },
+                ExecuteRepairDocumentsId = executeRepairDocumnets.Select(e => e.Id).ToList(),
             };
 
             var requestSecond = new DocumentCreateRequest
@@ -204,8 +210,8 @@ namespace EquipmentRepairDocument.Test.ServiceTest
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = new List<KKSEquipmentRequest>() { kksEquipmentRequestSecond },
-                Perfomers = new List<Perfomer>() { perfomer },
-                ExecuteRepairDocuments = executeRepairDocumnets,
+                PerfomersId = new List<Guid>() { perfomer.Id },
+                ExecuteRepairDocumentsId = executeRepairDocumnets.Select(e => e.Id).ToList(),
             };
 
             var documentFirst = await documentFactory.CreateDocumentAsync(requestFirst, CancellationToken.None);

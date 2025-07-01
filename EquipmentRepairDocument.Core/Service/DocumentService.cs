@@ -16,7 +16,7 @@ namespace EquipmentRepairDocument.Core.Service
                 var executeRepairDocument = await CreateERDAsync(cancellationToken);
 
                 // Добавление документа и связь его с комплектом документа(ов)
-                documentCreateRequests.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
+                documentCreateRequests.ForEach(e => e?.ExecuteRepairDocumentsId?.Add(executeRepairDocument.Id));
 
                 // Создание документов для добавления в БД
                 foreach (var documentRequest in documentCreateRequests)
@@ -39,7 +39,7 @@ namespace EquipmentRepairDocument.Core.Service
                 var executeRepairDocument = await CreateERDAsync(cancellationToken);
 
                 // Добавление документа и связь его с комплектом документа(ов)
-                documentCreateRequest.ExecuteRepairDocuments?.Add(executeRepairDocument);
+                documentCreateRequest.ExecuteRepairDocumentsId?.Add(executeRepairDocument.Id);
 
                 // Создание документа для добавления в БД
                 var document = await documentFactroy.CreateDocumentAsync(documentCreateRequest, cancellationToken);

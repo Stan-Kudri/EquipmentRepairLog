@@ -1,4 +1,3 @@
-using EquipmentRepairDocument.Core.Data.StandardModel;
 using EquipmentRepairDocument.Core.Data.ValidationData;
 
 namespace EquipmentRepairDocument.Core.Data.DocumentModel
@@ -26,26 +25,20 @@ namespace EquipmentRepairDocument.Core.Data.DocumentModel
         /// </summary>
         public string? Note { get; set; } = string.Empty;
 
-        public required Guid DocumentTypeId { get; set; }
-
         /// <summary>
         /// Тип документа.
         /// </summary>
-        public DocumentType? DocumentType { get; set; }
-
-        public required Guid DivisionId { get; set; }
+        public required Guid DocumentTypeId { get; set; }
 
         /// <summary>
         /// Цех/отдел предстовитель оборудования.
         /// </summary>
-        public Division? Division { get; set; }
-
-        public required Guid RepairFacilityId { get; set; }
+        public required Guid DivisionId { get; set; }
 
         /// <summary>
         /// Место нахождения оборудования (По принадлежности к ЭБ 1, ЭБ 2 и ОСО).
         /// </summary>
-        public RepairFacility? RepairFacility { get; set; }
+        public required Guid RepairFacilityId { get; set; }
 
         /// <summary>
         /// Список KKS оборудования.
@@ -55,11 +48,11 @@ namespace EquipmentRepairDocument.Core.Data.DocumentModel
         /// <summary>
         /// Исполнители работ.
         /// </summary>
-        public List<Perfomer>? Perfomers { get; set; } = new List<Perfomer>();
+        public List<Guid>? PerfomersId { get; set; } = new List<Guid>();
 
         /// <summary>
         /// Список комплектов связанных с документом.
         /// </summary>
-        public List<ExecuteRepairDocument> ExecuteRepairDocuments { get; set; } = new List<ExecuteRepairDocument>();
+        public List<Guid> ExecuteRepairDocumentsId { get; set; } = new List<Guid>();
     }
 }

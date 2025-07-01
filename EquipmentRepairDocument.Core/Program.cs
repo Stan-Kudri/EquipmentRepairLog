@@ -28,7 +28,7 @@ db.Divisions.Add(division);
 var docTypeFirst = new DocumentType()
 {
     Name = "Акт выполненных работ",
-    IsOnlyTypeDocInERD = true,
+    MultipleUseInERD = true,
     ExecutiveRepairDocNumber = 24,
     Abbreviation = "АВР",
 };
@@ -37,7 +37,7 @@ db.DocumentTypes.Add(docTypeFirst);
 var docTypeSecond = new DocumentType()
 {
     Name = "Ведомость выполненных работ",
-    IsOnlyTypeDocInERD = false,
+    MultipleUseInERD = false,
     ExecutiveRepairDocNumber = 29,
     Abbreviation = "ВВР",
 };
@@ -53,12 +53,9 @@ await db.SaveChangesAsync();
 
 var docFirst = new DocumentCreateRequest()
 {
-    Division = division,
-    DocumentType = docTypeFirst,
-    RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
     KKSEquipment = new List<KKSEquipmentRequest>() { kks },
-    Perfomers = new List<Perfomer>() { perfomer },
+    PerfomersId = new List<Guid>() { perfomer.Id },
     DivisionId = division.Id,
     DocumentTypeId = docTypeFirst.Id,
     RepairFacilityId = repairFacility.Id,
@@ -66,12 +63,9 @@ var docFirst = new DocumentCreateRequest()
 };
 var docSecond = new DocumentCreateRequest()
 {
-    Division = division,
-    DocumentType = docTypeSecond,
-    RepairFacility = repairFacility,
     RepairDate = DateTime.Now,
     KKSEquipment = new List<KKSEquipmentRequest>() { kks },
-    Perfomers = new List<Perfomer>() { perfomer },
+    PerfomersId = new List<Guid>() { perfomer.Id },
     DivisionId = division.Id,
     DocumentTypeId = docTypeSecond.Id,
     RepairFacilityId = repairFacility.Id,

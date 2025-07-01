@@ -22,16 +22,19 @@ namespace EquipmentRepairDocument.Test.FactoryTests
 
             var division = new Division { Id = Guid.NewGuid(), Number = 21, Name = "Реакторный цех", Abbreviation = "РЦ" };
             var repairFacility = new RepairFacility() { Id = Guid.NewGuid(), Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1", Number = 1 };
-            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, IsOnlyTypeDocInERD = true };
+            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, MultipleUseInERD = true };
+            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
+            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
+            await dbContext.Perfomers.AddRangeAsync(perfomers);
+            await dbContext.ExecuteRepairDocuments.AddRangeAsync(executeRepairDocs);
             await dbContext.Divisions.AddAsync(division);
             await dbContext.RepairFacilities.AddAsync(repairFacility);
             await dbContext.DocumentTypes.AddAsync(documentType);
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+            dbContext.ChangeTracker.Clear();
 
             var kksRequests = new List<KKSEquipmentRequest> { new KKSEquipmentRequest("20KAA22AA345 -- ", "Клапан запорный", "НГ-2265") };
-            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
-            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
             var requestFirst = new DocumentCreateRequest
             {
@@ -41,14 +44,13 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = kksRequests,
-                Perfomers = perfomers,
-                ExecuteRepairDocuments = executeRepairDocs
+                PerfomersId = perfomers.Select(e => e.Id).ToList(),
+                ExecuteRepairDocumentsId = executeRepairDocs.Select(e => e.Id).ToList(),
             };
 
-            // Act
             var documentFirst = await documentFactory.CreateDocumentAsync(requestFirst, CancellationToken.None);
-            dbContext.Documents.Add(documentFirst);
-            await dbContext.SaveChangesAsync();
+            await dbContext.Documents.AddAsync(documentFirst);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var requestSecond = new DocumentCreateRequest
             {
@@ -58,14 +60,14 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = new List<KKSEquipmentRequest>() { new KKSEquipmentRequest("20KAA21AA345 20KAA22AA345", "Клапан запорный", "НГ-2265") },
-                Perfomers = perfomers,
+                PerfomersId = perfomers.Select(e => e.Id).ToList(),
             };
 
             // Act
             var result = await documentFactory.CreateDocumentFromERDAsync(requestSecond, documentFirst.RegistrationNumber!, CancellationToken.None);
 
             // Assert
-            result.ExecuteRepairDocuments.Should().Contain(executeRepairDocs);
+            result.ExecuteRepairDocuments.Should().ContainInOrder(executeRepairDocs);
         }
 
         [Fact(DisplayName = "CreateDocumentAsync Division not found should throw NotFoundException")]
@@ -77,15 +79,17 @@ namespace EquipmentRepairDocument.Test.FactoryTests
             var documentFactory = new DocumentFactory(dbContext, equipmentService);
 
             var repairFacility = new RepairFacility() { Id = Guid.NewGuid(), Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1", Number = 1 };
-            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, IsOnlyTypeDocInERD = true };
+            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, MultipleUseInERD = true };
+            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
+            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
+            await dbContext.Perfomers.AddRangeAsync(perfomers);
+            await dbContext.ExecuteRepairDocuments.AddRangeAsync(executeRepairDocs);
             await dbContext.RepairFacilities.AddAsync(repairFacility);
             await dbContext.DocumentTypes.AddAsync(documentType);
             await dbContext.SaveChangesAsync();
 
             var kksRequests = new List<KKSEquipmentRequest> { new KKSEquipmentRequest("20KAA22AA345 -- ", "Клапан запорный", "НГ-2265") };
-            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
-            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
             var request = new DocumentCreateRequest
             {
@@ -95,8 +99,8 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DivisionId = Guid.NewGuid(),
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = kksRequests,
-                Perfomers = perfomers,
-                ExecuteRepairDocuments = executeRepairDocs
+                PerfomersId = perfomers.Select(e => e.Id).ToList(),
+                ExecuteRepairDocumentsId = executeRepairDocs.Select(e => e.Id).ToList(),
             };
 
             // Act & Assert
@@ -113,15 +117,17 @@ namespace EquipmentRepairDocument.Test.FactoryTests
 
             var division = new Division { Id = Guid.NewGuid(), Number = 21, Name = "Реакторный цех", Abbreviation = "РЦ" };
             var repairFacility = new RepairFacility() { Id = Guid.NewGuid(), Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1", Number = 1 };
-            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, IsOnlyTypeDocInERD = true };
-
-            var kksRequests = new KKSEquipmentRequest("20KAA22AA345 -- ", "Клапан запорный", "НГ-2265");
+            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, MultipleUseInERD = true };
             var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
             var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
+
+            var kksRequests = new KKSEquipmentRequest("20KAA22AA345 -- ", "Клапан запорный", "НГ-2265");
 
             var idEquipments = await equipmentService.AddEquipmentAsync(kksRequests);
             var kksEquipments = dbContext.KKSEquipments.Where(e => idEquipments.Contains(e.Id)).ToList();
 
+            await dbContext.Perfomers.AddRangeAsync(perfomers);
+            await dbContext.ExecuteRepairDocuments.AddRangeAsync(executeRepairDocs);
             await dbContext.Divisions.AddAsync(division);
             await dbContext.RepairFacilities.AddAsync(repairFacility);
             await dbContext.DocumentTypes.AddAsync(documentType);
@@ -148,8 +154,8 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = new List<KKSEquipmentRequest>() { new KKSEquipmentRequest("20KAA21AA345 20KAA22AA345", "Клапан запорный", "НГ-2265") },
-                Perfomers = perfomers,
-                ExecuteRepairDocuments = executeRepairDocs
+                PerfomersId = perfomers.Select(e => e.Id).ToList(),
+                ExecuteRepairDocumentsId = executeRepairDocs.Select(e => e.Id).ToList(),
             };
 
             // Act
@@ -170,16 +176,18 @@ namespace EquipmentRepairDocument.Test.FactoryTests
 
             var division = new Division { Id = Guid.NewGuid(), Number = 21, Name = "Реакторный цех", Abbreviation = "РЦ" };
             var repairFacility = new RepairFacility() { Id = Guid.NewGuid(), Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1", Number = 1 };
-            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, IsOnlyTypeDocInERD = true };
+            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, MultipleUseInERD = true };
+            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
+            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
+            await dbContext.Perfomers.AddRangeAsync(perfomers);
+            await dbContext.ExecuteRepairDocuments.AddRangeAsync(executeRepairDocs);
             await dbContext.Divisions.AddAsync(division);
             await dbContext.RepairFacilities.AddAsync(repairFacility);
             await dbContext.DocumentTypes.AddAsync(documentType);
             await dbContext.SaveChangesAsync();
 
             var kksRequests = new List<KKSEquipmentRequest> { new KKSEquipmentRequest("20KAA22AA345 -- ", "Клапан запорный", "НГ-2265") };
-            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
-            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
             var request = new DocumentCreateRequest
             {
@@ -189,8 +197,8 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = kksRequests,
-                Perfomers = perfomers,
-                ExecuteRepairDocuments = executeRepairDocs
+                PerfomersId = perfomers.Select(e => e.Id).ToList(),
+                ExecuteRepairDocumentsId = executeRepairDocs.Select(e => e.Id).ToList()
             };
 
             // Act & Assert
@@ -207,16 +215,18 @@ namespace EquipmentRepairDocument.Test.FactoryTests
 
             var division = new Division { Id = Guid.NewGuid(), Number = 21, Name = "Реакторный цех", Abbreviation = "РЦ" };
             var repairFacility = new RepairFacility() { Id = Guid.NewGuid(), Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1", Number = 1 };
-            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, IsOnlyTypeDocInERD = true };
+            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, MultipleUseInERD = true };
+            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
+            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
+            await dbContext.Perfomers.AddRangeAsync(perfomers);
+            await dbContext.ExecuteRepairDocuments.AddRangeAsync(executeRepairDocs);
             await dbContext.Divisions.AddAsync(division);
             await dbContext.RepairFacilities.AddAsync(repairFacility);
             await dbContext.DocumentTypes.AddAsync(documentType);
             await dbContext.SaveChangesAsync();
 
             var kksRequests = new List<KKSEquipmentRequest> { new KKSEquipmentRequest("20KAA22AA345 -- ", "Клапан запорный", "НГ-2265") };
-            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
-            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
             var request = new DocumentCreateRequest
             {
@@ -226,8 +236,8 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = kksRequests,
-                Perfomers = perfomers,
-                ExecuteRepairDocuments = executeRepairDocs
+                PerfomersId = perfomers.Select(e => e.Id).ToList(),
+                ExecuteRepairDocumentsId = executeRepairDocs.Select(e => e.Id).ToList(),
             };
 
             // Act
@@ -255,16 +265,18 @@ namespace EquipmentRepairDocument.Test.FactoryTests
 
             var division = new Division { Id = Guid.NewGuid(), Number = 21, Name = "Реакторный цех", Abbreviation = "РЦ" };
             var repairFacility = new RepairFacility() { Id = Guid.NewGuid(), Name = "Энергоблок № 1", Abbreviation = "ЭБ № 1", Number = 1 };
-            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, IsOnlyTypeDocInERD = true };
+            var documentType = new DocumentType { Id = Guid.NewGuid(), Name = "Ведомость выполненных работ", Abbreviation = "ВВР", ExecutiveRepairDocNumber = 15, MultipleUseInERD = true };
+            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
+            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
+            await dbContext.Perfomers.AddRangeAsync(perfomers);
+            await dbContext.ExecuteRepairDocuments.AddRangeAsync(executeRepairDocs);
             await dbContext.Divisions.AddAsync(division);
             await dbContext.RepairFacilities.AddAsync(repairFacility);
             await dbContext.DocumentTypes.AddAsync(documentType);
             await dbContext.SaveChangesAsync();
 
             var kksRequests = new List<KKSEquipmentRequest> { new KKSEquipmentRequest("20KAA22asdasdaAA345", "Клапан запорный", "НГ-2265") };
-            var perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } };
-            var executeRepairDocs = new List<ExecuteRepairDocument> { new() { Id = Guid.NewGuid() } };
 
             var request = new DocumentCreateRequest
             {
@@ -274,8 +286,8 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DivisionId = division.Id,
                 RepairFacilityId = repairFacility.Id,
                 KKSEquipment = kksRequests,
-                Perfomers = perfomers,
-                ExecuteRepairDocuments = executeRepairDocs
+                PerfomersId = perfomers.Select(e => e.Id).ToList(),
+                ExecuteRepairDocumentsId = executeRepairDocs.Select(e => e.Id).ToList(),
             };
 
             // Act & Assert
@@ -310,8 +322,8 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DocumentTypeId = Guid.NewGuid(),
                 RepairFacilityId = Guid.NewGuid(),
                 KKSEquipment = new List<KKSEquipmentRequest>(),
-                Perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } },
-                ExecuteRepairDocuments = new List<ExecuteRepairDocument> { new() },
+                PerfomersId = new List<Guid> { Guid.NewGuid() },
+                ExecuteRepairDocumentsId = new List<Guid> { new() },
             };
 
             // Act & Assert
@@ -334,8 +346,8 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DocumentTypeId = Guid.NewGuid(),
                 RepairFacilityId = Guid.NewGuid(),
                 KKSEquipment = new List<KKSEquipmentRequest>() { new KKSEquipmentRequest("20KAA22AA366 20KAA21AA335", "Клапан запорный", "НГ-2265") },
-                Perfomers = new List<Perfomer>(),
-                ExecuteRepairDocuments = new List<ExecuteRepairDocument> { new() },
+                PerfomersId = new List<Guid>(),
+                ExecuteRepairDocumentsId = new List<Guid> { Guid.NewGuid() },
             };
 
             // Act & Assert
@@ -358,8 +370,8 @@ namespace EquipmentRepairDocument.Test.FactoryTests
                 DocumentTypeId = Guid.NewGuid(),
                 RepairFacilityId = Guid.NewGuid(),
                 KKSEquipment = new List<KKSEquipmentRequest>() { new KKSEquipmentRequest("20KAA22AA366 20KAA21AA335", "Клапан запорный", "НГ-2265") },
-                Perfomers = new List<Perfomer> { new Perfomer() { Name = "Атомтехэнерго", Abbreviation = "АТЭ" } },
-                ExecuteRepairDocuments = null!
+                PerfomersId = new List<Guid> { Guid.NewGuid() },
+                ExecuteRepairDocumentsId = null!
             };
 
             // Act & Assert
