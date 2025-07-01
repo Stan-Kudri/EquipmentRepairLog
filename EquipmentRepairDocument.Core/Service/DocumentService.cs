@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairDocument.Core.Service
 {
-    public class DocumentService(AppDbContext dbContext, DocumentFactroy documentFactroy)
+    public class DocumentService(AppDbContext dbContext, DocumentFactory documentFactroy)
     {
         public async Task AddAllDocumentsAsync(List<DocumentCreateRequest> documentCreateRequests, CancellationToken cancellationToken = default)
         {
@@ -16,12 +16,16 @@ namespace EquipmentRepairDocument.Core.Service
                 var executeRepairDocument = await CreateERDAsync(cancellationToken);
 
                 // Добавление документа и связь его с комплектом документа(ов)
-                documentCreateRequests.ForEach(e => e?.ExecuteRepairDocuments?.Add(executeRepairDocument));
+                documentCreateRequests.ForEach(e => e?.ExecuteRepairDocumentsId?.Add(executeRepairDocument.Id));
 
                 // Создание документов для добавления в БД
-                var documents = await documentFactroy.CreateListDocumentAsync(documentCreateRequests, cancellationToken);
-                await dbContext.Documents.AddRangeAsync(documents, cancellationToken);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                foreach (var documentRequest in documentCreateRequests)
+                {
+                    var document = await documentFactroy.CreateDocumentAsync(documentRequest, cancellationToken);
+                    await dbContext.Documents.AddAsync(document, cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                }
+
                 return DBNull.Value;
             },
             cancellationToken);
@@ -35,7 +39,7 @@ namespace EquipmentRepairDocument.Core.Service
                 var executeRepairDocument = await CreateERDAsync(cancellationToken);
 
                 // Добавление документа и связь его с комплектом документа(ов)
-                documentCreateRequest.ExecuteRepairDocuments?.Add(executeRepairDocument);
+                documentCreateRequest.ExecuteRepairDocumentsId?.Add(executeRepairDocument.Id);
 
                 // Создание документа для добавления в БД
                 var document = await documentFactroy.CreateDocumentAsync(documentCreateRequest, cancellationToken);

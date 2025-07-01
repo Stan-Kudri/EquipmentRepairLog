@@ -13,7 +13,7 @@ namespace EquipmentRepairDocument.Core.DBContext.Configuration.Documents
             builder.Property(x => x.Name).HasColumnName("name").IsRequired().HasMaxLength(128);
             builder.HasIndex(x => x.Abbreviation).IsUnique();
             builder.Property(x => x.Abbreviation).HasColumnName("abbreviation").IsRequired().HasMaxLength(32);
-            builder.Property(x => x.IsOnlyTypeDocInERD).HasColumnName("is_single_type_document").IsRequired().HasDefaultValue(false);
+            builder.Property(x => x.MultipleUseInERD).HasColumnName("is_single_type_document").IsRequired().HasDefaultValue(false);
             builder.HasMany(x => x.Documents).WithOne(x => x.DocumentType).HasForeignKey(x => x.DocumentTypeId).IsRequired();
         }
     }

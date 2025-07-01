@@ -28,7 +28,7 @@ namespace EquipmentRepairDocument.Core.Service
 
             if (existingDocumentType == null)
             {
-                var documentNormalize = documentTypeFactory.Create(documentType.Name, documentType.Abbreviation, documentType.ExecutiveRepairDocNumber, documentType.IsOnlyTypeDocInERD);
+                var documentNormalize = documentTypeFactory.Create(documentType.Name, documentType.Abbreviation, documentType.ExecutiveRepairDocNumber, documentType.MultipleUseInERD);
                 await dbContext.DocumentTypes.AddAsync(documentNormalize, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return;

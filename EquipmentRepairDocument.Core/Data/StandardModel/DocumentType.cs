@@ -22,7 +22,7 @@ namespace EquipmentRepairDocument.Core.Data.StandardModel
         /// <summary>
         /// Флаг едиственного типа документа к комплекту ИРД.
         /// </summary>
-        public required bool IsOnlyTypeDocInERD { get; set; }
+        public required bool MultipleUseInERD { get; set; }
 
         /// <summary>
         /// Список документов для данного типа документа.

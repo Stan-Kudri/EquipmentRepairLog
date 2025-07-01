@@ -1,9 +1,22 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EquipmentRepairDocument.Core.Data.ValidationData
 {
     public class KKSEquipmentRequest
     {
+        public KKSEquipmentRequest()
+        {
+        }
+
+        [SetsRequiredMembers]
+        public KKSEquipmentRequest(string kKS, string equipment, string equipmentType)
+        {
+            KKS = kKS;
+            Equipment = equipment;
+            EquipmentType = equipmentType;
+        }
+
         /// <summary>
         /// Идентификационный номер оборудования/детали.
         /// </summary>

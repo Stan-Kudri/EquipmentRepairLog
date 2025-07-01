@@ -3,54 +3,43 @@ using EquipmentRepairDocument.Core.Data.StandardModel;
 using EquipmentRepairDocument.Core.DBContext;
 using EquipmentRepairDocument.Core.Exceptions;
 using EquipmentRepairDocument.Core.Exceptions.AppException;
+using EquipmentRepairDocument.Core.Service;
 using Microsoft.EntityFrameworkCore;
 
 namespace EquipmentRepairDocument.Core.FactoryData
 {
-    public class DocumentFactroy(AppDbContext dbContext)
+    public class DocumentFactory(AppDbContext dbContext, EquipmentService equipmentService)
     {
-        public async Task<List<Document>> CreateListDocumentAsync(List<DocumentCreateRequest> documentCreateRequests, CancellationToken cancellationToken = default)
-        {
-            BusinessLogicException.ThrowIfNull(documentCreateRequests);
-
-            if (documentCreateRequests.Count == 0)
-            {
-                throw new BusinessLogicException("The document does not contain any item.");
-            }
-
-            var result = new List<Document>(documentCreateRequests.Count);
-
-            // Создание/установка порядкового и регистрационного номера
-            foreach (var item in documentCreateRequests)
-            {
-                var document = await CreateDocumentAsync(item, cancellationToken);
-                result.Add(document);
-            }
-
-            return result;
-        }
-
         public async Task<Document> CreateDocumentAsync(DocumentCreateRequest documentCreateRequest, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(documentCreateRequest);
-            BusinessLogicException.ThrowIfNull(documentCreateRequest.ExecuteRepairDocuments);
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.ExecuteRepairDocumentsId);
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.KKSEquipment);
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.PerfomersId);
+
+            var kksIdEquipments = await equipmentService.AddRangeEquipmentAsync(documentCreateRequest.KKSEquipment);
+            var kksEquipment = dbContext.KKSEquipments.Where(kks => kksIdEquipments.Contains(kks.Id));
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(kksEquipment);
 
             // Создание/установка порядкового и регистрационного номера
             var (OrdinalNumber, RegistrationNumber) = await GetNumberDocument(documentCreateRequest, cancellationToken);
 
+            var perfomers = dbContext.Perfomers.Where(e => documentCreateRequest.PerfomersId.Contains(e.Id));
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(perfomers);
+
+            var erd = dbContext.ExecuteRepairDocuments.Where(e => documentCreateRequest.ExecuteRepairDocumentsId.Contains(e.Id));
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(erd);
+
             return new Document()
             {
-                Division = documentCreateRequest.Division,
-                DocumentType = documentCreateRequest.DocumentType,
-                RepairFacility = documentCreateRequest.RepairFacility,
                 RepairDate = documentCreateRequest.RepairDate,
-                KKSEquipment = documentCreateRequest.KKSEquipment,
-                Perfomers = documentCreateRequest.Perfomers,
+                KKSEquipment = kksEquipment.ToList(),
+                Perfomers = perfomers.ToList(),
                 DivisionId = documentCreateRequest.DivisionId,
                 DocumentTypeId = documentCreateRequest.DocumentTypeId,
                 RepairFacilityId = documentCreateRequest.RepairFacilityId,
                 RegistrationDate = documentCreateRequest.RegistrationDate,
-                ExecuteRepairDocuments = documentCreateRequest.ExecuteRepairDocuments,
+                ExecuteRepairDocuments = erd.ToList(),
                 OrdinalNumber = OrdinalNumber,
                 RegistrationNumber = RegistrationNumber,
             };
@@ -59,7 +48,8 @@ namespace EquipmentRepairDocument.Core.FactoryData
         public async Task<Document> CreateDocumentFromERDAsync(DocumentCreateRequest documentCreateRequest, string registrationNumberDoc, CancellationToken cancellationToken = default)
         {
             BusinessLogicException.ThrowIfNull(documentCreateRequest);
-            BusinessLogicException.ThrowIfNull(documentCreateRequest.ExecuteRepairDocuments);
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.KKSEquipment);
+            BusinessLogicException.ThrowIfNullOrEmptyCollection(documentCreateRequest.PerfomersId);
 
             var executeRepairDoc = await dbContext.Documents.Include(erd => erd.ExecuteRepairDocuments)
                                                              .Where(e => e.RegistrationNumber == registrationNumberDoc)
@@ -67,7 +57,7 @@ namespace EquipmentRepairDocument.Core.FactoryData
                                                              .FirstOrDefaultAsync(cancellationToken)
                                                              ?? throw NotFoundException.Create<ExecuteRepairDocument, string>(nameof(registrationNumberDoc), registrationNumberDoc);
 
-            documentCreateRequest.ExecuteRepairDocuments.Add(executeRepairDoc);
+            documentCreateRequest.ExecuteRepairDocumentsId.Add(executeRepairDoc.Id);
             return await CreateDocumentAsync(documentCreateRequest, cancellationToken);
         }
 

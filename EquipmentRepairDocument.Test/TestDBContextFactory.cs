@@ -13,7 +13,7 @@ namespace EquipmentRepairDocument.Test
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
             await sqlLiteConnection.OpenAsync();
-            var dbContextBuilder = new DbContextOptionsBuilder<TContext>().EnableDetailedErrors().UseSqlite(sqlLiteConnection);
+            var dbContextBuilder = new DbContextOptionsBuilder<TContext>().EnableDetailedErrors().EnableSensitiveDataLogging().UseSqlite(sqlLiteConnection);
             var dbContext = (TContext?)Activator.CreateInstance(typeof(TContext), dbContextBuilder.Options) ?? throw new InvalidOperationException($"Unable to create {typeof(TContext).Name}");
             await dbContext.Database.EnsureCreatedAsync();
             return dbContext;
